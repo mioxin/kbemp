@@ -25,9 +25,11 @@ public class DepDataSet extends Card {
         this.deleted = false;
     }
 
-    public DepDataSet(Long id, Date date,String parent, String name, Boolean deleted, String history) {
+    public DepDataSet(Long id, Date date, String idr, String name, String parent, long pid, Boolean deleted, String history) {
         this.id = id;
+        this.idr = idr;
         this.parent = parent;
+        this.parentid = pid;
         this.name = name;
         this.date =  date;
         this.deleted = deleted;

@@ -18,19 +18,23 @@ import java.util.Map;
 public class UsersDataSet extends Card {
     private Long id;
     private Date date;
+    private Date ldate;
     private Boolean deleted;
     private String history;
 
     public UsersDataSet(){
         this.date = new Date(System.currentTimeMillis());
+        this.ldate = this.date;
         this.deleted = false;
     }
 
-    public UsersDataSet(Long id, Date date,String parent, String name, String phone, String mobile, Integer tabnum,
-                        String avatar, String grade, Boolean deleted, String history) {
+    public UsersDataSet(Long id, Date date, String name,String parent, Long pid,String phone, String mobile, Integer tabnum,
+                        String grade, String avatar, Boolean deleted, String history) {
+                        //date,name,parent,phone,mobile,tabnum,grade,avatar,deleted,history
         this.id = id;
         this.date = date;
         this.parent = parent;
+        this.parentid = pid;
         this.name = name;
         this.phone = phone;
         this.mobile = mobile;

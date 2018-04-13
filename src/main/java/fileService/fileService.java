@@ -8,7 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -21,15 +22,24 @@ public class fileService {
         this.logger = BaseConst.logg;
     }
 
-    public ArrayList<Card> get(Path file){
-        ArrayList<Card> arCards = new ArrayList<>();
+    public Map<String,Card> get(Path file){
+        Map<String,Card> mCards = new HashMap<>();
         String str;
+        int count = 1;
         try (BufferedReader br = new BufferedReader(new FileReader(file.toFile()))){
+            long t = System.nanoTime();
             while((str = br.readLine()) != null) {
-                if (str.indexOf("GET http")<0 && str.indexOf("(anonymous) @")<0) {
-                    arCards.add(new Card(str));
+                try {
+                    if (str.indexOf("GET http")<0 && str.indexOf("(anonymous) @")<0) {
+                        Card card = new Card(str);
+                        mCards.put(card.getidr(),card);
+                }
+                System.out.print("\rCount: " + count++ + ". Time: " + (System.nanoTime()-t)/(count-1) + " ns. " + mCards.get("razd66").getparent());
+                }catch (IOException er){
+                    er.printStackTrace();
                 }
             }
+            System.out.println("");
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -37,6 +47,6 @@ public class fileService {
             e.printStackTrace();
         }
 
-        return arCards;
+        return mCards;
     }
 }

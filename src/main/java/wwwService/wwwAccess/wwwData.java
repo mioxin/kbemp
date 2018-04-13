@@ -51,89 +51,99 @@ public class wwwData {
         this.httpclient = httpclient;
     }
 
-    public ArrayList<Card> getCards(String strreq){
+    public ArrayList<Card> getCards(String strreq) throws IOException {
         try {
             httpget.setURI(new URI(BaseConst.BASEADDR + strreq));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+
         return httpclient.execute(httpget, response -> {
+            ArrayList<Card> aCards = new ArrayList<>();
             int status = response.getStatusLine().getStatusCode();
             if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
                 if (entity == null) {
                     return null;
                 } else {
-                    return EntityUtils.toString(entity);
+                    //return EntityUtils.toString(entity);
+                    JsonArray jarray = null;
+                    try {
+                        jarray = new JsonParser().parse(EntityUtils.toString(entity)).getAsJsonArray();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    JsonObject jo;
+                    for (JsonElement je : jarray) {
+                        jo = (je.isJsonObject()) ? je.getAsJsonObject() : null;
+                        if (jo != null) {
+                            aCards.add(new Card(jo));
+                        }
+                    }
                 }
             } else {
                 throw new ClientProtocolException("Unexpected response status: " + status);
             }
-
-            ArrayList<Card> aCards = new ArrayList<>();
-            if (result == null) {
-                return null;
-            } else {
-                JsonArray jarray = null;
-                try {
-                    jarray = new JsonParser().parse(EntityUtils.toString(result)).getAsJsonArray();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                JsonObject jo;
-                for (JsonElement je : jarray) {
-                    jo = (je.isJsonObject()) ? je.getAsJsonObject() : null;
-                    if (jo != null) {
-                        aCards.add(new Card(jo));
-                    }
-                }
-                return aCards;
-            }
+            return aCards;
         });
     }
 
-    public String getO(ArrayList<String> namephone) throws UnsupportedEncodingException {
+    public String getO(ArrayList<String> namephone) throws IOException {
         Pattern p_vn = Pattern.compile("<b>(-?\\d{2,4}-?\\d{0,2}-?\\d{0,2})<\\/b>");
         Pattern p_wordsonly = Pattern.compile("([А-Яа-я]+)',");
+        try {
+            httpget.setURI(new URI(BaseConst.FIOADDR + URLEncoder.encode(namephone.get(0), "UTF-8")));
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
 
-        return executor.request(BaseConst.FIOADDR + URLEncoder.encode(namephone.get(0), "UTF-8"), result -> {
-            if (result == null) {
-                return null;
-            } else {
-                String fio = "";
-                String[] aResponse = new String[0];
-                try {
-                    aResponse = EntityUtils.toString(result).split(BaseConst.SEARCHDELIM);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                for (String s : aResponse) {
-                    if (s.isEmpty()) {
-                        //logger.fine("FIO not found.");
-                    } else if (findPattern(p_vn, s).equals(namephone.get(1))) {
-                        String[] as = s.split(" ");
+        return httpclient.execute(httpget, response -> {
+            String fio = "";
+            int status = response.getStatusLine().getStatusCode();
+                  if (status >= 200 && status < 300) {
+                HttpEntity entity = response.getEntity();
+                if (entity == null) {
+                    return null;
+                } else {
+                    String[] aResponse = new String[0];
+                    try {
+                        aResponse = EntityUtils.toString(entity).split(BaseConst.SEARCHDELIM);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    for (String s : aResponse) {
+                        if (s.isEmpty()) {
+                            //logger.fine("FIO not found.");
+                        } else if (findPattern(p_vn, s).equals(namephone.get(1))) {
+                            String[] as = s.split(" ");
 
-                        fio = as[0] + " " + as[1] + " " + findPattern(p_wordsonly, as[2]);
-                        fio = fio.replaceAll("'", "");
-                        fio = fio.replaceAll(",", "");
+                            fio = as[0] + " " + as[1] + " " + findPattern(p_wordsonly, as[2]);
+                            fio = fio.replaceAll("'", "");
+                            fio = fio.replaceAll(",", "");
+                        }
                     }
                 }
-                return fio;
+            } else {
+                throw new ClientProtocolException("Unexpected response status: " + status);
             }
+            return fio;
+
         });
     }
 
-    public Integer downloadImgFile(String url) {
+    public Integer downloadImgFile(String url) throws IOException {
         String base="";
-        URL imgUrl = null;
         Path imgFile = null;
         Pattern p_host = Pattern.compile("^(http://\\S+?\\.\\S+?\\.\\S+?)");
         if (findPattern(p_host,url) == "") {
-            base = BaseConst.WWWINT;
+            base = "http://";
         }
-        final String finalUrl = base + url;
+        URI imgUri = null;
+        //final String finalUrl = base + url;
         try {
-            imgFile = Paths.get(new URI(finalUrl));
+            imgUri = new URI( base + url);
+            imgFile = Paths.get(imgUri.getHost() + imgUri.getPath());
+            httpget.setURI(imgUri);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -148,12 +158,13 @@ public class wwwData {
                 e.printStackTrace();
             }
         }
-
-
-        return executor.request(finalUrl, result -> {
+        return httpclient.execute(httpget, result -> {
             if (result == null) {
+                logger.warning("Файл "+ httpget.getURI().toString() +" не найден. Скачать невозможно.");
                 return null;
             } else {
+                logger.fine("Скачиваем файл "+ httpget.getURI().toString() +".");
+                /* todo Download avatar image*/
 
                 return 1;
             }

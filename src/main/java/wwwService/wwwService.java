@@ -18,6 +18,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -58,13 +60,13 @@ public class wwwService {
         return apidata;
     }
 
-    public ArrayList<Card> get(String str){
+    public Map<String,Card> get(String str){
 
         if (!WinHttpClients.isWinAuthAvailable()) {
             System.out.println("Integrated Win auth is not supported!!!");
         }
 //        System.out.println("Executing request " + httpget.getRequestLine());
-        ArrayList<Card> aCards = new ArrayList<>();
+        Map<String,Card>  mCards = new HashMap<>();
         ArrayList<Card> atmpCards = new ArrayList<>();
         ArrayList<String> aDeps = new ArrayList<>();
         ArrayList<String> atmpDeps = new ArrayList<>();
@@ -72,27 +74,31 @@ public class wwwService {
 
         while (aDeps.size() > 0){
             for (String id : aDeps) {
-                atmpCards = apidata.getCards(id);
-                for (Card c : atmpCards) {
+                try {
+                    atmpCards = apidata.getCards(id);
+                    for (Card c : atmpCards) {
                     if (c.isParent()) {
-                        aCards.add(c);
-                        atmpDeps.add(c.get_id());
+                        mCards.put(c.getidr(),c);
+                        atmpDeps.add(c.getidr());
                     } else {
                         try {
-                            c.updatename(apidata.getO(c.getNamePhone()));
+                            c.setname(apidata.getO(c.getNamePhone()));
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         }
-                        aCards.add(c);
+                        mCards.put(c.getidr(),c);
                     }
                     logger.fine(c.toString());
                 }
-                atmpCards.clear();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            atmpCards.clear();
             }
             aDeps.clear();
             aDeps.addAll(atmpDeps);
             atmpDeps.clear();
         }
-        return aCards;
+        return mCards;
     }
 }

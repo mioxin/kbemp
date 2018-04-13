@@ -7,35 +7,36 @@ import com.gmail.mrmioxin.kbemp.wwwService.wwwService;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
  * Created by palchuk on 31.01.2018.
  */
 public class Cards {
-    private ArrayList<Card> arCards;
+    private Map<String, Card> mCards;
     //private Site site;
-    private static Logger logger;
+    private static Logger logger= BaseConst.logg;
 
     public Cards() {
-        this.arCards = new ArrayList<>();
-        this.logger = BaseConst.logg;
+        this.mCards = new HashMap<>();
     }
 
     public void add(ArrayList<Card> cards) {
-        this.arCards.addAll(cards);
+
     }
 
     public void add(Card card){
-        arCards.add(card);
+
     }
 
     public void load(String razd) throws DBException {
         DBService dbService = new DBService();
         dbService.printConnectInfo();
 
-        this.arCards = (new wwwService()).get(razd);
-        dbService.updateDB(arCards);
+        this.mCards = (new wwwService()).get(razd);
+        dbService.updateDB(mCards);
 
     }
 
@@ -43,20 +44,25 @@ public class Cards {
         DBService dbService = new DBService();
         dbService.printConnectInfo();
 
-        this.arCards = (new fileService()).get(file);
-        logger.fine("Get " + arCards.size() + " cards");
+        this.mCards.put ("razd2",new Card("razd2","Головной Банк","root",0L,true));
+        this.mCards.put ("razd154",new Card("razd154","Филиальная сеть","root",0L, true));
+        this.mCards.putAll ((new fileService()).get(file));
+        logger.fine("Get " + mCards.size() + " cards");
 
-        Integer dbcount = dbService.updateDB(arCards);
+        dbService.cleanUp();
+        Integer dbcount = dbService.updateDB(mCards);
         logger.fine("Get " + dbcount + " cards");
+    }
 
-
+    public Card getcard(String idr){
+        return mCards.get(idr);
     }
 
     @Override
     public String toString() {
         StringBuilder sCards = new StringBuilder();
-        for (Card c :arCards) {
-            sCards.append(c.toString()).append("\r\n");
+        for (Map.Entry<String, Card> entry : mCards.entrySet()) {
+            sCards.append(entry.getValue().toString()).append("\r\n");
         }
         return sCards.toString();
     }
@@ -71,8 +77,8 @@ public class Cards {
                 append("tabnum").append(del).
                 append("avatar").append(del).
                 append("grade").append(del).append("\r\n");
-        for (Card c :arCards) {
-            sCards.append(c.toCSV(del)).append("\r\n");
+        for (Map.Entry<String, Card> entry : mCards.entrySet()) {
+            sCards.append(entry.getValue().toCSV(del)).append("\r\n");
         }
         return sCards.toString();
     }

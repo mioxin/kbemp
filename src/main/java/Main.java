@@ -1,6 +1,5 @@
 package com.gmail.mrmioxin.kbemp;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.ConsoleHandler;
@@ -12,7 +11,7 @@ import java.util.logging.Logger;
  */
 
 public class Main {
-    private static Cards cards;
+    public static Cards cards;
     private static Logger logg;
 
     public static void main(String... args) throws Exception {
@@ -21,7 +20,7 @@ public class Main {
         logg.setUseParentHandlers(false);
         logg.getHandlers()[0].setLevel(Level.FINE);
         logg.setLevel(Level.FINE);
-        Path filecsv = Paths.get("data1.txt");
+        Path filecsv = Paths.get("data.txt");
 
         cards = new Cards();
         //cards.load("razd339");

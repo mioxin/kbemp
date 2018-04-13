@@ -1,14 +1,13 @@
 package com.gmail.mrmioxin.kbemp.dbService.dao;
 
 import com.gmail.mrmioxin.kbemp.Card;
-import com.gmail.mrmioxin.kbemp.dbService.DBException;
+import com.gmail.mrmioxin.kbemp.IDao;
 import com.gmail.mrmioxin.kbemp.dbService.dataSets.UsersDataSet;
 import com.gmail.mrmioxin.kbemp.dbService.executor.Executor;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -18,28 +17,29 @@ import java.util.Map;
  *         <p>
  *         Описание курса и лицензия: https://github.com/vitaly-chibrikov/stepic_java_webserver
  */
-public class UsersDAO {
-
+public class UsersDAO  implements IDao {
+    private static final String TABLE = "users";
     private Executor executor;
 
     public UsersDAO(Connection connection) {
         this.executor = new Executor(connection);
     }
 
-    public UsersDataSet get(long id) throws SQLException {
-        return executor.execQuery("select * from users where id=" + id, result -> {
+    public Card get(long id) throws SQLException {
+        return executor.execQuery("select * from " + TABLE + " where id=" + id + " and deleted=FALSE", result -> {
             if (result.isLast()) {
                 return null;
             }
             result.next();
-            return new UsersDataSet(result.getLong(1), result.getDate(2), result.getString(3), result.getString(4),
-                    result.getString(5), result.getString(6), result.getInt(7), result.getString(8), result.getString(9),
-                    result.getBoolean(10), result.getString(11));
+            return new UsersDataSet(result.getLong(1), result.getDate(2), result.getString(3), result.getString(4),result.getLong(5),
+                    result.getString(6), result.getString(7), result.getInt(8), result.getString(9), result.getString(10),
+                    result.getBoolean(11), result.getString(12));
         });
     }
 
-    public Long getUserId(String tabnum) throws SQLException {
-        String q = "select * from users where tabnum=" + tabnum;
+    @Override
+    public long getId(String tabnum) throws SQLException {
+        String q = "select * from " + TABLE + " where tabnum=" + tabnum + " and deleted=FALSE";
         return executor.execQuery(q, result -> {
             if (result.isLast()) {
                 return null;
@@ -49,39 +49,50 @@ public class UsersDAO {
         });
     }
 
-    public void insertUser(UsersDataSet card) throws SQLException {
-        Long oldid;
-        UsersDataSet oldcard;
-        String hist="";
-        Map<String,String> mapcard = card.toMap();
-        if ((oldid = getUserId(mapcard.get("tabnum"))) >0) { //карточка уже есть
-            oldcard = get(oldid);
-            hist = card.compareCard(oldcard);
-            if (hist == "") { //изменений нет
-                throw new SQLException(mapcard.get("tabnum").toString()+". "+mapcard.get("name")+": Карточка не изменилась.");
-            } else {//изменяем старую
-                executor.execUpdate("update users set deleted = TRUE where id = " + oldid.toString());
-            }
-        }
+    public void delete(long id) throws SQLException {
+        executor.execUpdate("update " + TABLE + " set deleted = TRUE where id = " + id);
+    }
 
-        executor.execUpdate("insert into users (date,name,parent,phone,mobile,tabnum,grade,avatar,deleted,history) "+
+    public void  setparentId(long id, long pid) throws  SQLException {
+        executor.execUpdate("update " + TABLE + " set parentid = " + pid + " where id = " + id +" and deleted = false");
+    }
+
+    public void  setLdate(long id, Date ldate) throws  SQLException{
+        executor.execUpdate("update " + TABLE + " set ldate = " + ldate.toString() + " where id = " + id +" and deleted = false");
+    }
+
+
+    public long CountNoPid() throws SQLException {
+        return executor.execQuery("select count(id) from " + TABLE + " where  parentid is null and deleted=FALSE", result -> {
+            result.next();
+            return result.getLong(1);
+        });
+    }
+
+    public void insert(Card card, String hist) throws SQLException {
+        Map<String,String> mapcard = card.toMap();
+        String date = new Date(System.currentTimeMillis()).toString();
+
+        executor.execUpdate("insert into " + TABLE + " (date,ldate,name,parent,parentid,phone,mobile,tabnum,grade,avatar,deleted,history) "+
                 "values ('" + 
-                new Date(System.currentTimeMillis()).toString() + "','" +
+                date + "','" +
+                date + "','" +
                 mapcard.get("name") + "','" +
-                mapcard.get("parent") + "','" +
+                mapcard.get("parent") + "'," +
+                mapcard.get("parentid") + ",'" +
                 mapcard.get("phone") + "','" +
                 mapcard.get("mobile") + "'," +
                 mapcard.get("tabnum") + ",'" +
                 mapcard.get("grade") + "','" +
-                mapcard.get("avatar") + "','" +
+                mapcard.get("avatar") + "'," +
                 "FALSE,'" +
                 hist + "')");
     }
 
 
     public void createTable() throws SQLException {
-        executor.execUpdate("create table if not exists users " +
-                "(id bigint auto_increment, " +
+        executor.execUpdate("create table if not exists " + TABLE +
+                " (id bigint auto_increment, " +
                 "date DATE," +
                 "name   varchar(256), " +
                 "parent varchar(256), " +
@@ -92,15 +103,16 @@ public class UsersDAO {
                 "avatar varchar(256), " +
                 "deleted boolean, " +
                 "history varchar(1024), " +
-                "primary key (id)," +
-                "key (name)," +
-                "key (tabnum)," +
-                "key (phone)");
+                "parentid bigint, " +
+                "primary key (id))");
+        executor.execUpdate("create index if not exists name on users(name)");
+        executor.execUpdate("create index if not exists tabnum on users(tabnum)");
+        executor.execUpdate("create index if not exists mobile on users(mobile)");
         //("create table if not exists users (id bigint auto_increment, user_name varchar(256), primary key (id))");
     }
 
     public void dropTable() throws SQLException {
-        executor.execUpdate("drop table users");
+        executor.execUpdate("drop table if exists " + TABLE);
     }
 
 }
