@@ -3,11 +3,14 @@ package com.gmail.mrmioxin.kbemp;
 import com.gmail.mrmioxin.kbemp.dbService.DBException;
 import com.gmail.mrmioxin.kbemp.dbService.DBService;
 import com.gmail.mrmioxin.kbemp.fileService.fileService;
+import com.gmail.mrmioxin.kbemp.wwwService.ThreadGetO;
 import com.gmail.mrmioxin.kbemp.wwwService.wwwService;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -16,11 +19,13 @@ import java.util.logging.Logger;
  */
 public class Cards {
     private Map<String, Card> mCards;
-    //private Site site;
+    private wwwService site;
     private static Logger logger= BaseConst.logg;
 
     public Cards() {
         this.mCards = new HashMap<>();
+        this.site =new wwwService();
+        logger.fine("Cards: new wwwService");
     }
 
     public void add(ArrayList<Card> cards) {
@@ -35,12 +40,13 @@ public class Cards {
         DBService dbService = new DBService();
         dbService.printConnectInfo();
 
-        this.mCards = (new wwwService()).get(razd);
+        this.mCards = site.get(razd);
+
         dbService.updateDB(mCards);
 
     }
 
-    public void load(Path file) throws DBException {
+    public void load(Path file) throws DBException, InterruptedException {
         DBService dbService = new DBService();
         dbService.printConnectInfo();
 
@@ -49,6 +55,32 @@ public class Cards {
         this.mCards.putAll ((new fileService()).get(file));
         logger.fine("Get " + mCards.size() + " cards");
 
+        //добавить отчество к name wwwData.getO()
+        int count = 0;
+        long t = System.nanoTime();
+        for (Map.Entry<String, Card> entry : mCards.entrySet()){
+            Card c = entry.getValue();
+            if (!c.isParent()) {
+                ThreadGetO thr = new ThreadGetO(site.getHttpclient(),c, "thread"+count);
+                ThreadGetO.threads.add(thr);
+                thr.start();
+//                thr.join();
+//                System.out.println(thr.toString());
+//                ArrayList<String> nph = c.getNamePhone();
+//                try {
+//                    c.setname(site.getApidata().getO(nph));
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+            }
+            count++;
+        }
+        count=0;
+        for (ThreadGetO th: ThreadGetO.threads){
+            th.join();
+        }
+        System.out.println("End of update FIO.");
         dbService.cleanUp();
         Integer dbcount = dbService.updateDB(mCards);
         logger.fine("Get " + dbcount + " cards");

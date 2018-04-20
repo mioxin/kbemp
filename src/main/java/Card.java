@@ -148,6 +148,15 @@ public  class Card {
     public String getidr(){
         return this.idr;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public Integer getTabnum() {
+        return tabnum;
+    }
+
     public String getparent() {
         return this.parent;
     }

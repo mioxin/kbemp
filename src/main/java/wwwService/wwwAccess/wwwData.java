@@ -2,8 +2,6 @@ package com.gmail.mrmioxin.kbemp.wwwService.wwwAccess;
 
 import com.gmail.mrmioxin.kbemp.BaseConst;
 import com.gmail.mrmioxin.kbemp.Card;
-import com.gmail.mrmioxin.kbemp.Cards;
-import com.gmail.mrmioxin.kbemp.wwwService.ececutor.Executor;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -14,9 +12,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -107,7 +103,7 @@ public class wwwData {
                 } else {
                     String[] aResponse = new String[0];
                     try {
-                        aResponse = EntityUtils.toString(entity).split(BaseConst.SEARCHDELIM);
+                        aResponse = EntityUtils.toString(entity).split(BaseConst.SEARCHDELIM0);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

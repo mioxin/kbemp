@@ -33,6 +33,7 @@ public class UsersDataSet extends Card {
                         //date,name,parent,phone,mobile,tabnum,grade,avatar,deleted,history
         this.id = id;
         this.date = date;
+        this.ldate = date;
         this.parent = parent;
         this.parentid = pid;
         this.name = name;

@@ -94,6 +94,7 @@ public class UsersDAO  implements IDao {
         executor.execUpdate("create table if not exists " + TABLE +
                 " (id bigint auto_increment, " +
                 "date DATE," +
+                "ldate DATE," +
                 "name   varchar(256), " +
                 "parent varchar(256), " +
                 "phone  varchar(256), " +
