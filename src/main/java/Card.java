@@ -126,12 +126,12 @@ public  class Card {
         return ret;
     }
 
-    public ArrayList<String> getNamePhone() {
-        ArrayList<String> a = new ArrayList<>();
-        a.add(this.name);
-        a.add(this.phone);
-        return a;
-    }
+//    public ArrayList<String> getNamePhone() {
+//        ArrayList<String> a = new ArrayList<>();
+//        a.add(this.name);
+//        a.add(this.phone);
+//        return a;
+//    }
 
     public void setname(String newname){ // добавляем отчество
         this.name = newname;
@@ -147,6 +147,10 @@ public  class Card {
 
     public String getidr(){
         return this.idr;
+    }
+
+    public String getAvatar() {
+        return avatar;
     }
 
     public String getName() {

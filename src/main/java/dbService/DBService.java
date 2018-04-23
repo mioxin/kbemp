@@ -6,11 +6,9 @@ import com.gmail.mrmioxin.kbemp.IDao;
 import com.gmail.mrmioxin.kbemp.Main;
 import com.gmail.mrmioxin.kbemp.dbService.dao.DepDAO;
 import com.gmail.mrmioxin.kbemp.dbService.dao.UsersDAO;
-import com.gmail.mrmioxin.kbemp.dbService.dataSets.DepDataSet;
-import com.gmail.mrmioxin.kbemp.wwwService.wwwService;
+import com.gmail.mrmioxin.kbemp.wwwService.wwwAccess.ThreadGetImg;
 import org.h2.jdbcx.JdbcDataSource;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -80,7 +78,7 @@ public class DBService {
         Long oldid, newid;
         String hist = "";
         Map<String, String> mapcard = ecard.getValue().toMap();
-        String tabnum = mapcard.get("tabnum");
+        String tabnum = ecard.getValue().getTabnum().toString();
         PName newParentName;
         PName oldParentName;
         String newidr = ecard.getValue().getparent();
@@ -88,9 +86,9 @@ public class DBService {
         if (newidr.equals("root")) {//отделы верхнего уровня - без parent
             newParentName = new PName("root","root");
         }else{
-            newParentName = new PName(Main.cards.getcard(newidr).getNamePhone().get(0), // полное имя parent
+            newParentName = new PName(Main.cards.getcard(newidr).getName(), // полное имя parent
                     (Main.cards.getcard(newidr).getparent().equals("root"))?
-                            "root":Main.cards.getcard(Main.cards.getcard(newidr).getparent()).getNamePhone().get(0)
+                            "root":Main.cards.getcard(Main.cards.getcard(newidr).getparent()).getName()
             ); // полное имя parent's parent
         }
 
@@ -108,9 +106,9 @@ public class DBService {
                 oldParentName = new PName("root","root");
             }else {
                 oldParentName = new PName(
-                        ddao.get(oldcard.getparentid()).getNamePhone().get(0),
+                        ddao.get(oldcard.getparentid()).getName(),
                         (ddao.get(oldcard.getparentid()).getparentid() == 0L) ?
-                                "root":ddao.get(ddao.get(oldcard.getparentid()).getparentid()).getNamePhone().get(0)
+                                "root":ddao.get(ddao.get(oldcard.getparentid()).getparentid()).getName()
                 );
             }
             if (!oldParentName.equals(newParentName)) {
@@ -124,13 +122,16 @@ public class DBService {
                 udao.setLdate(oldid, new Date(System.currentTimeMillis()));
                 return oldid;
             } else {//помечяем старую карточку как deleted
-                String savatar = mapcard.get("avatar");
+//                String savatar = mapcard.get("avatar");
                 if (hist.contains("avatar")) {//если изменилось фото - скачать
-                    try {
-                        (new wwwService()).getApidata().downloadImgFile(savatar);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient() ,ecard.getValue(), "threadImg"+ ecard.getValue().getTabnum().toString());
+                    ThreadGetImg.threads.add(thr);
+                    thr.start();
+//                    try {
+//                        (new wwwService()).getApidata().downloadImgFile(savatar);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 }
                 udao.delete(oldid);
             }
@@ -179,7 +180,7 @@ public class DBService {
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
-                    logger.warning("Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getNamePhone().get(0));
+                    logger.warning("Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getName());
                     errcount++;
                 }
             }
@@ -203,7 +204,7 @@ public class DBService {
                         count++;
                     }
                 } catch (SQLException e) {
-                    logger.warning("Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getNamePhone().get(0));
+                    logger.warning("Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getName());
                     er++;
                 }
                 System.out.print("\rCount DEPS in DB: " + count + ". Error: " + er);
@@ -235,7 +236,7 @@ public class DBService {
                 } catch (DBException e) {
                     //e.printStackTrace();
                     errcount++;
-                    logger.warning("Can not inser user: " + entry.getValue().getNamePhone().get(0));
+                    logger.warning("Can not inser user: " + entry.getValue().getName());
                 }
             }
 
@@ -249,6 +250,13 @@ public class DBService {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException ignore) {
+            }
+            for (ThreadGetImg th: ThreadGetImg.threads){
+                try {
+                    th.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

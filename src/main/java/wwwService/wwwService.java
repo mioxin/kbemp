@@ -2,13 +2,9 @@ package com.gmail.mrmioxin.kbemp.wwwService;
 
 import com.gmail.mrmioxin.kbemp.BaseConst;
 import com.gmail.mrmioxin.kbemp.Card;
+import com.gmail.mrmioxin.kbemp.wwwService.wwwAccess.ThreadGetO;
 import com.gmail.mrmioxin.kbemp.wwwService.wwwAccess.wwwData;
-import org.apache.http.HeaderElement;
-import org.apache.http.HeaderElementIterator;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -17,13 +13,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.WinHttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
-import org.apache.http.message.BasicHeaderElementIterator;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.ProxySelector;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -71,7 +63,7 @@ public class wwwService {
 
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 // Increase max total connection to 200
-        cm.setMaxTotal(20);
+        cm.setMaxTotal(40);
 // Increase default max connection per route to 20
         cm.setDefaultMaxPerRoute(20);
 // Increase max connections for localhost:80 to 50
@@ -104,9 +96,11 @@ public class wwwService {
     public wwwData getApidata() {
         return apidata;
     }
+
     public  CloseableHttpClient getHttpclient() {
         return httpclient;
     }
+
     public Map<String,Card> get(String str){
 
         if (!WinHttpClients.isWinAuthAvailable()) {
@@ -124,23 +118,34 @@ public class wwwService {
                 try {
                     atmpCards = apidata.getCards(id);
                     for (Card c : atmpCards) {
-                    if (c.isParent()) {
-                        mCards.put(c.getidr(),c);
-                        atmpDeps.add(c.getidr());
-                    } else {
-                        try {
-                            c.setname(apidata.getO(c.getNamePhone()));
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
+                        if (c.isParent()) {
+//                            mCards.put(c.getidr(),c);
+                            atmpDeps.add(c.getidr());
+                        } else {//добавляем отчество
+//                            try {
+//                                c.setname(apidata.getO(c.getNamePhone()));
+//                            } catch (UnsupportedEncodingException e) {
+//                                e.printStackTrace();
+//                            }
+                            ThreadGetO thr = new ThreadGetO(httpclient, c, "thread"+c.getTabnum());
+                            ThreadGetO.threads.add(thr);
+                            thr.start();
                         }
+                        logger.fine(c.toString());
+                    }
+                    for (ThreadGetO th: ThreadGetO.threads){
+                        th.join();
+                    }
+
+                    for (Card c : atmpCards){
                         mCards.put(c.getidr(),c);
                     }
-                    logger.fine(c.toString());
-                }
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            atmpCards.clear();
+                atmpCards.clear();
             }
             aDeps.clear();
             aDeps.addAll(atmpDeps);
