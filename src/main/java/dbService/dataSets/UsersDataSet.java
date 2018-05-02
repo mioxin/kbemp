@@ -28,20 +28,20 @@ public class UsersDataSet extends Card {
         this.deleted = false;
     }
 
-    public UsersDataSet(Long id, Date date, String name,String parent, Long pid,String phone, String mobile, Integer tabnum,
+    public UsersDataSet(Long id, Date date, String name,String parent, Long pid, String phone, String mobile, Integer tabnum,
                         String grade, String avatar, Boolean deleted, String history) {
-                        //date,name,parent,phone,mobile,tabnum,grade,avatar,deleted,history
+                        //date,name,parent,pid,phone,mobile,tabnum,grade,avatar,deleted,history
         this.id = id;
         this.date = date;
         this.ldate = date;
+        this.name = name;
         this.parent = parent;
         this.parentid = pid;
-        this.name = name;
         this.phone = phone;
         this.mobile = mobile;
         this.tabnum = tabnum;
-        this.avatar = avatar;
         this.grade = grade;
+        this.avatar = avatar;
         this.deleted = false;
         this.history = history;
     }

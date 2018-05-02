@@ -31,7 +31,7 @@ public class UsersDAO  implements IDao {
                 return null;
             }
             result.next();
-            return new UsersDataSet(result.getLong(1), result.getDate(2), result.getString(3), result.getString(4),result.getLong(5),
+            return new UsersDataSet(result.getLong(1), result.getDate(3), result.getString(4), result.getString(5),result.getLong(13),
                     result.getString(6), result.getString(7), result.getInt(8), result.getString(9), result.getString(10),
                     result.getBoolean(11), result.getString(12));
         });
@@ -58,7 +58,7 @@ public class UsersDAO  implements IDao {
     }
 
     public void  setLdate(long id, Date ldate) throws  SQLException{
-        executor.execUpdate("update " + TABLE + " set ldate = " + ldate.toString() + " where id = " + id +" and deleted = false");
+        executor.execUpdate("update " + TABLE + " set ldate = '" + ldate.toString() + "' where id = " + id +" and deleted = false");
     }
 
 

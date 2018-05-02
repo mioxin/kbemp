@@ -33,4 +33,6 @@ public interface IDao {
     void createTable() throws SQLException;
 
     void dropTable() throws SQLException;
+
+    default void dropDoubleRow()  throws SQLException {};
 }

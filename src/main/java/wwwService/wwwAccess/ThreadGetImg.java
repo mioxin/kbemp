@@ -3,6 +3,9 @@ package com.gmail.mrmioxin.kbemp.wwwService.wwwAccess;
 import com.gmail.mrmioxin.kbemp.Card;
 import org.apache.http.impl.client.CloseableHttpClient;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,8 +27,16 @@ public class ThreadGetImg extends  ThreadGet {
         super(site,c,nameThread);
         String base="";
         String url = c.getAvatar();
-        Pattern p_host = Pattern.compile("^(http://\\S+?\\.\\S+?\\.\\S+?)");
+        //todo удалить из имени файла хвост после знака '?' ("http://hr-filesrv.hq.bc/data/avatars/302716.jpg?1704")
+        int posv = url.indexOf("?");
+        if (posv>0) {
+            url = url.substring(0,posv);
+        }
+
+        Pattern p_host = Pattern.compile("^(\\S+?\\.\\S+?\\.\\S+?\\/)");
         if (findPattern(p_host,url,1) == "") {
+            base = "http://www-int";
+        }else {
             base = "http://";
         }
         URI uri = null;
@@ -60,8 +71,14 @@ public class ThreadGetImg extends  ThreadGet {
                         return null;
                     } else {
                         logger.fine("Скачиваем файл \"" + httpget.getURI().toString() + "\".");
-                        /* todo Download avatar image*/
-
+                        /*Download avatar image*/
+//                        BufferedInputStream bis = new BufferedInputStream(result.getEntity().getContent());
+                        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(imgFile.toFile()));
+                        result.getEntity().writeTo(bos);
+//                        int inByte;
+//                        while((inByte = bis.read()) != -1) bos.write(inByte);
+//                        bis.close();
+                        bos.close();
                         return 1;
                     }
                 });

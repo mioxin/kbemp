@@ -23,8 +23,8 @@ public class Main {
         Path filecsv = Paths.get("data.txt");
 
         cards = new Cards();
-        cards.load("razd339");
-//        cards.load(filecsv);
+//        cards.load(filecsv);//первоначальная загрузка из файла
+        cards.load("razd");
 //        System.out.println(cards.toString());
     }
 

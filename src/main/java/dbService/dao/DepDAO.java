@@ -24,13 +24,17 @@ public class DepDAO implements IDao {
         return executor.execQuery("select * from " + TABLE + " where id=" + id + " and deleted=FALSE", result -> {
             result.next();
             return new DepDataSet(result.getLong(1), result.getDate(2), result.getString(3),result.getString(4),
-                    result.getString(5),result.getLong(6),result.getBoolean(7),  result.getString(8));
+                    result.getString(5),result.getLong(6),result.getBoolean(7),result.getString(8), result.getString(9));
         });
     }
 
     @Override
-    public long getId(String name, String pidr) throws SQLException {
-        return executor.execQuery("select * from " + TABLE + " where name='" + name + "' and parent='" + pidr +"' and deleted=FALSE", result -> {
+    public long getId(String name, String parentname) throws SQLException {
+        String pnameCampare= " and parentname='"+parentname + "'";
+        if (parentname.equals("")) {
+            pnameCampare= " and parentname is null";
+        }
+        return executor.execQuery("select * from " + TABLE + " where name='" + name + "'" + pnameCampare +" and deleted=FALSE", result -> {
             result.next();
             return result.getLong(1);
         });
@@ -89,6 +93,7 @@ public class DepDAO implements IDao {
                 "parentid bigint, " +
                 "deleted boolean, " +
                 "history varchar(1024), " +
+                "parentname varchar(255), " +
                 "primary key (id));");
         executor.execUpdate("create index if not exists name on deps(idr)");
         executor.execUpdate("create index if not exists name on deps(name)");
@@ -98,5 +103,49 @@ public class DepDAO implements IDao {
     @Override
     public void dropTable() throws SQLException {
         executor.execUpdate("drop table if exists " + TABLE);
+    }
+
+    @Override
+    public  void dropDoubleRow() throws SQLException {
+        //заполнение parentname 3 уровня ('parent name/parent-parent name/parent-parent-parent name')
+        executor.execUpdate("update " +TABLE+ " a set a.parentname=" +
+                " (SELECT CONCAT(t1.name,'/',t2.name,'/',t3.name)" +
+                "   FROM deps AS t1" +
+                "   LEFT JOIN deps AS t2 ON t2.id=t1.parentid" +
+                "   LEFT JOIN deps AS t3 ON t3.id=t2.parentid" +
+                "   where a.parentid=t1.id)" +
+                " WHERE a.parentname is null");
+        executor.execUpdate("update " +TABLE+ " a set a.parentname= '//' WHERE a.parentname is null");
+
+        //снятие метки об удалении у дубликатов с меньшим ID
+        executor.execUpdate("update " +TABLE+ " set deleted=false where id not in " +
+                        "(SELECT max(b.id) FROM " +TABLE+ " b GROUP BY b.name, b.parentname)");
+
+        //перед удалением дубликатов с большим ID, проверить есть ли их ID где-то в PARENTID
+        //и заменить на id сохраненной копии
+        executor.execUpdate("UPDATE " +TABLE+ " v set v.parentid=(" +
+                 " CASE WHEN (select z.id FROM" +
+                 "         (SELECT* from " +TABLE+ " where id in" +
+                 "                 (SELECT min(b.id) FROM " +TABLE+ " b GROUP BY b.name, b.parentNAME)) as a," +
+                 " (SELECT* from " +TABLE+ " where id not in" +
+                 "         (SELECT max(b.id) FROM " +TABLE+ " b GROUP BY b.name, b.parentNAME)) as z," +
+                "  (SELECT* from " +TABLE+ " where id not in" +
+                "          (SELECT min(b.id) FROM " +TABLE+ " b GROUP BY b.name, b.parentNAME)) as x" +
+                "  WHERE a.parentid=x.id and x.name=z.name and x.parentname=z.parentname and V.ID=a.ID) is null" +
+                "  THEN v.parentid" +
+                "  ELSE  (select z.id FROM" +
+                "          (SELECT* from " +TABLE+ " where id in" +
+                "                  (SELECT min(b.id) FROM " +TABLE+ " b GROUP BY b.name, b.parentNAME)) as a," +
+                "          (SELECT* from " +TABLE+ " where id not in" +
+                "                  (SELECT max(b.id) FROM " +TABLE+ " b GROUP BY b.name, b.parentNAME)) as z," +
+                "  (SELECT* from " +TABLE+ " where id not in" +
+                "          (SELECT min(b.id) FROM " +TABLE+ " b GROUP BY b.name, b.parentNAME)) as x" +
+                "  WHERE a.parentid=x.id and x.name=z.name and x.parentname=z.parentname and V.ID=a.ID)" +
+                "  END)");
+
+        //удаление дубликатов с большим ID
+        executor.execUpdate("delete from " +TABLE+ " where id not in " +
+                "(SELECT min(b.id) FROM " +TABLE+ " b GROUP BY b.name, b.parentname)");
+
     }
 }

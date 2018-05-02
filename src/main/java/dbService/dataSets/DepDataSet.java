@@ -25,12 +25,15 @@ public class DepDataSet extends Card {
         this.deleted = false;
     }
 
-    public DepDataSet(Long id, Date date, String idr, String name, String parent, long pid, Boolean deleted, String history) {
+    public DepDataSet(Long id, Date date, String idr, String name, String parent, long pid, Boolean deleted, String history, String parentname) {
+//    public Card(String idr, String name, String parent, Long pid, Boolean hasChild, String parentname) {
+        super(idr,name,parent,pid,true,parentname);
         this.id = id;
-        this.idr = idr;
-        this.parent = parent;
-        this.parentid = pid;
-        this.name = name;
+//        this.idr = idr;
+//        this.parent = parent;
+//        this.parentid = pid;
+//        this.name = name;
+//        this.parentname = parentname;
         this.date =  date;
         this.deleted = deleted;
         this.history = history;

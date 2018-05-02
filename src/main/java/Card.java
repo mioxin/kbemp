@@ -27,6 +27,7 @@ public  class Card {
     protected Integer tabnum;
     protected String avatar;
     protected String grade;
+    protected String parentname;
 
     private static class Mnems {
         static Map<String, String> subst = new HashMap<>();
@@ -105,12 +106,13 @@ public  class Card {
         }
     }
 
-    public Card(String idr, String name, String parent, Long pid, Boolean hasChild) {
+    public Card(String idr, String name, String parent, Long pid, Boolean hasChild, String parentname) {
         this.idr = idr;
         this.name = name;
         this.parentid = pid;
         this.parent = parent;
         this.hasChild = hasChild;
+        this.parentname = parentname;
     }
 
     public Card(){}
@@ -166,6 +168,9 @@ public  class Card {
     }
     public Long getparentid() {
         return this.parentid;
+    }
+    public String getparentname() {
+        return this.parentname;
     }
 
     public void setparentid(Long pid){

@@ -121,29 +121,23 @@ public class wwwService {
                         if (c.isParent()) {
 //                            mCards.put(c.getidr(),c);
                             atmpDeps.add(c.getidr());
-                        } else {//добавляем отчество
-//                            try {
-//                                c.setname(apidata.getO(c.getNamePhone()));
-//                            } catch (UnsupportedEncodingException e) {
-//                                e.printStackTrace();
-//                            }
-                            ThreadGetO thr = new ThreadGetO(httpclient, c, "thread"+c.getTabnum());
-                            ThreadGetO.threads.add(thr);
-                            thr.start();
+                        } else {//добавляем отчество upd: только после проверки есть ли такой человек
+//                            ThreadGetO thr = new ThreadGetO(httpclient, c, "thread"+c.getTabnum());
+//                            ThreadGetO.threads.add(thr);
+//                            thr.start();
                         }
                         logger.fine(c.toString());
                     }
-                    for (ThreadGetO th: ThreadGetO.threads){
-                        th.join();
-                    }
-
+//                    for (ThreadGetO th: ThreadGetO.threads){
+//                        th.join();
+//                    }
                     for (Card c : atmpCards){
                         mCards.put(c.getidr(),c);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
                 }
                 atmpCards.clear();
             }
