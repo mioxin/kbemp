@@ -27,7 +27,7 @@ public class ThreadGetImg extends  ThreadGet {
         super(site,c,nameThread);
         String base="";
         String url = c.getAvatar();
-        //todo удалить из имени файла хвост после знака '?' ("http://hr-filesrv.hq.bc/data/avatars/302716.jpg?1704")
+        //удалить из имени файла хвост после знака '?' ("http://hr-filesrv.hq.bc/data/avatars/302716.jpg?1704")
         int posv = url.indexOf("?");
         if (posv>0) {
             url = url.substring(0,posv);

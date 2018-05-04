@@ -1,5 +1,15 @@
 package com.gmail.mrmioxin.kbemp;
 
+import com.gmail.mrmioxin.kbemp.BaseConst;
+import com.gmail.mrmioxin.kbemp.dbService.DBService;
+import com.gmail.mrmioxin.kbemp.servlets.IndexServlet;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.ConsoleHandler;
@@ -20,11 +30,34 @@ public class Main {
         logg.setUseParentHandlers(false);
         logg.getHandlers()[0].setLevel(Level.FINE);
         logg.setLevel(Level.FINE);
-        Path filecsv = Paths.get("data.txt");
+        DBService dbService = new DBService();
+        dbService.printConnectInfo();
 
-        cards = new Cards();
-//        cards.load(filecsv);//первоначальная загрузка из файла
-        cards.load("razd");
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+//        context.setContextPath("/");
+        context.addServlet(new ServletHolder(new IndexServlet(dbService)), "/");
+//        context.addServlet(new ServletHolder(new SignInServlet(dbService)), "/signin");
+
+        ResourceHandler resource_handler = new ResourceHandler();
+        resource_handler.setResourceBase("./html");
+
+        HandlerList handlers = new HandlerList();
+        handlers.setHandlers(new Handler[]{resource_handler, context});
+
+        Server server = new Server(8080);
+        server.setHandler(handlers);
+
+        try {
+            server.start();
+            System.out.println("Server started");
+            server.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+//        cards = new Cards(dbService);
+//        cards.load(Paths.get("data.txt"));//первоначальная загрузка из файла
+//        cards.load("razd");
 //        System.out.println(cards.toString());
     }
 

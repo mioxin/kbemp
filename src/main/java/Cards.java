@@ -19,10 +19,12 @@ public class Cards {
     private Map<String, Card> mCards;
     public wwwService site;
     private static Logger logger= BaseConst.logg;
+    private DBService dbService;
 
-    public Cards() {
+    public Cards(DBService dbServ) {
         this.mCards = new HashMap<>();
         this.site =new wwwService();
+        this.dbService = dbServ;
         logger.fine("Cards: new wwwService");
     }
 
@@ -35,21 +37,20 @@ public class Cards {
     }
 
     public void load(String razd) throws DBException {
-        DBService dbService = new DBService();
-        dbService.printConnectInfo();
+//        DBService dbService = new DBService();
+//        dbService.printConnectInfo();
 
 //      public Card(String idr, String name, String parent, Long pid, Boolean hasChild, String parentname) {
 //        this.mCards.put(razd,new Card("#","Корневой","root",0L,true,"//"));
 
         this.mCards.putAll(site.get(razd));
-
         dbService.updateDB(this.mCards);
 
     }
 
     public void load(Path file) throws DBException, InterruptedException {
-        DBService dbService = new DBService();
-        dbService.printConnectInfo();
+//        DBService dbService = new DBService();
+//        dbService.printConnectInfo();
 
         this.mCards.put ("razd2",new Card("razd2","Головной Банк","root",0L,true,""));
         this.mCards.put ("razd154",new Card("razd154","Филиальная сеть","root",0L, true,""));

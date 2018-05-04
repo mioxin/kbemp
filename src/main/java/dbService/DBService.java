@@ -302,52 +302,52 @@ public class DBService {
         return  (depcount + usercount);
     }
 
-    private int findUserParent(String typemap, Map<Long, PName> mapcash){
-        int count = 0;
-        int err =0;
-        Map<Long, PName> tmpcash = new HashMap<>();
-        try {
-            connection.setAutoCommit(false);
-            while (mapcash.size()>0) {
-                for (Map.Entry<Long, PName> entry : mapcash.entrySet()) {
-
-                    try {
-                        if (typemap.equals("users")) {
-                            udao.setparentId(entry.getKey(), ddao.getId(entry.getValue().getName(),entry.getValue().getParentName()));
-                        } else {
-                            if (entry.getValue().equals("root")) {
-                                ddao.setparentId(entry.getKey(), 0L);
-                            }else{
-                                ddao.setparentId(entry.getKey(), ddao.getId(entry.getValue().getName(),entry.getValue().getParentName()));
-                            }
-                        }
-                        count++;
-                    } catch (SQLException e) {
-                        tmpcash.put(entry.getKey(),entry.getValue());
-                        e.printStackTrace();
-                    }
-                }
-                err++;
-                mapcash.clear();
-                mapcash.putAll(tmpcash);
-                if (err>5){
-                    System.out.println("Поиск родителей более " + err + " раз.");
-                    System.out.println(mapcash.toString());
-                    throw new SQLException();
-                }
-            }
-            connection.commit();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException ignore) {
-            }
-        }
-        return count;
-    }
+//    private int findUserParent(String typemap, Map<Long, PName> mapcash){
+//        int count = 0;
+//        int err =0;
+//        Map<Long, PName> tmpcash = new HashMap<>();
+//        try {
+//            connection.setAutoCommit(false);
+//            while (mapcash.size()>0) {
+//                for (Map.Entry<Long, PName> entry : mapcash.entrySet()) {
+//
+//                    try {
+//                        if (typemap.equals("users")) {
+//                            udao.setparentId(entry.getKey(), ddao.getId(entry.getValue().getName(),entry.getValue().getParentName()));
+//                        } else {
+//                            if (entry.getValue().equals("root")) {
+//                                ddao.setparentId(entry.getKey(), 0L);
+//                            }else{
+//                                ddao.setparentId(entry.getKey(), ddao.getId(entry.getValue().getName(),entry.getValue().getParentName()));
+//                            }
+//                        }
+//                        count++;
+//                    } catch (SQLException e) {
+//                        tmpcash.put(entry.getKey(),entry.getValue());
+//                        e.printStackTrace();
+//                    }
+//                }
+//                err++;
+//                mapcash.clear();
+//                mapcash.putAll(tmpcash);
+//                if (err>5){
+//                    System.out.println("Поиск родителей более " + err + " раз.");
+//                    System.out.println(mapcash.toString());
+//                    throw new SQLException();
+//                }
+//            }
+//            connection.commit();
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        } finally {
+//            try {
+//                connection.setAutoCommit(true);
+//            } catch (SQLException ignore) {
+//            }
+//        }
+//        return count;
+//    }
 
     public void cleanUp() throws DBException {
         try {
