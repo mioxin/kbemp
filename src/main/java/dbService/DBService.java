@@ -15,7 +15,9 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -51,15 +53,22 @@ public class DBService {
     }
     private final Connection connection;
     private Logger logger = BaseConst.logg;
-    private Map<Long, PName> udepcash; //сохраняем имя отдела и id карточки users если parentid не найден, для позднего поиска
+    private Map<Long, PName> udepcash; //(deprecated)сохраняем имя отдела и id карточки users если parentid не найден, для позднего поиска
     private  IDao udao, ddao;
 
     public DBService() {
         this.connection = getH2Connection();
         this.udao = new UsersDAO(connection);
         this.ddao = new DepDAO(connection);
-
         this.udepcash = new HashMap<>();
+    }
+
+    public Card getDep(long id) throws DBException {
+        try {
+            return (ddao.get(id));
+        } catch (SQLException e) {
+            throw new DBException(e);
+        }
     }
 
     public Card getUser(long id) throws DBException {
@@ -70,13 +79,36 @@ public class DBService {
         }
     }
 
-    public Card getUser(String name) throws DBException {
+    public List<Card> getByName(String name, Boolean noDeleted) throws DBException {
+        List<Card> cards;
         try {
-            return (udao.get(udao.getId(name)));
+            cards = (ddao.getByField("name",name,noDeleted));
+            cards.addAll(udao.getByField("name",name,noDeleted));
+        } catch (SQLException e) {
+            throw new DBException(e);
+        }
+        return  cards;
+    }
+
+    public List<Card> getByPID(long pid, Boolean noDeleted) throws DBException {
+        List<Card> cards;
+        try {
+            cards = (ddao.getByField("parentid",pid,noDeleted));
+            cards.addAll(udao.getByField("parentid",pid,noDeleted));
+        } catch (SQLException e) {
+            throw new DBException(e);
+        }
+        return  cards;
+    }
+
+    public List<Card> getByMobile(String mobile, Boolean noDeleted) throws DBException {
+        try {
+            return udao.getByField("mobile",mobile,noDeleted);
         } catch (SQLException e) {
             throw new DBException(e);
         }
     }
+
 
 /*
 *   addUser(Map.Entry<String, Card> ecard)

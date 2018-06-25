@@ -10,6 +10,9 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import java.awt.*;
+import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.ConsoleHandler;
@@ -34,12 +37,12 @@ public class Main {
         dbService.printConnectInfo();
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-//        context.setContextPath("/");
-        context.addServlet(new ServletHolder(new IndexServlet(dbService)), "/");
+        context.setContextPath("/");
+        context.addServlet(new ServletHolder(new IndexServlet(dbService)), "/*");
 //        context.addServlet(new ServletHolder(new SignInServlet(dbService)), "/signin");
 
         ResourceHandler resource_handler = new ResourceHandler();
-        resource_handler.setResourceBase("./html");
+        resource_handler.setResourceBase("html");
 
         HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[]{resource_handler, context});
@@ -50,6 +53,17 @@ public class Main {
         try {
             server.start();
             System.out.println("Server started");
+
+            //открываем в браузере главную страничку
+            Desktop desktop;
+            try {
+                desktop = Desktop.getDesktop();
+                desktop.browse(new URL("http://localhost:8080").toURI());
+            } catch (IOException ex) {
+                System.err.println("Failed to browse. " + ex.getLocalizedMessage());
+            } catch (Exception ex) {
+                System.err.println("Класс Desktop не поддерживается.");
+            }
             server.join();
         } catch (Exception e) {
             e.printStackTrace();
