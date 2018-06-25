@@ -66,6 +66,12 @@ public  class Card {
             this.phone = findPattern(p_vn, text);
             this.mobile = findPattern(p_sot, text);
             this.avatar = findPattern(p_ava, text, 3);
+            //удалить из имени файла хвост после знака '?' ("http://hr-filesrv.hq.bc/data/avatars/302716.jpg?1704")
+            int posv = this.avatar.indexOf("?");
+            if (posv>0) {
+                this.avatar = this.avatar.substring(0,posv);
+            }
+
             this.grade = findPattern(p_dol,text);
         }
     }
