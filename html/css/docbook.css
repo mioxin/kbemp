@@ -11,14 +11,14 @@ a:visited {
   color: #036;
 }
 
-body {
+/* body {
   font-family: Verdana, Helvetica, arial, freesans, clean, sans-serif;
   font-size: 10pt;
   margin-left: auto;
   margin-right: auto;
   background-color: #FFF;
   color: #444;
-}
+} */
 
 .navheader, .navfooter {
   font-size: 10pt;
@@ -53,32 +53,6 @@ h6 { font-size: 10pt; }
 p, ul {
 /*  margin: 1.286em 0;*/
   line-height: 120%;
-}
-
-div {
-/*  border:thin dotted blue; 
-/*  margin-bottom: 5px;*/
-}
-
-div.row {
-	display:table-row;
-}
-
-div.filter{
-
-}
-
-div.table {
-  display:table;
-  background-color: #FFFFFF; 
-  text-align: left; 
-/*  font-size: 110%; */
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 2.0em;
-  margin-bottom: 2.0em;
-  padding:3px;
-  min-width:704px;
 }
 
 .cardlist {

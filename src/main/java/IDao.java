@@ -4,6 +4,7 @@ import com.gmail.mrmioxin.kbemp.dbService.dataSets.DepDataSet;
 
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Created by palchuk on 12.04.2018.
@@ -16,6 +17,13 @@ public interface IDao {
     };
     default long getId(String name) throws SQLException{
         return 0L;
+    };
+
+    default List<Card> getByField(String name, String value, Boolean noDeleted) throws  SQLException{
+        return null;
+    };
+    default List<Card> getByField(String name, Long value, Boolean noDeleted) throws  SQLException{
+        return null;
     };
 
     long CountNoPid() throws SQLException;

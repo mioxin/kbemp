@@ -24,6 +24,7 @@ public class IndexServlet extends HttpServlet {
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
         //todo: module 2 home work
+
     }
 
     //sign up

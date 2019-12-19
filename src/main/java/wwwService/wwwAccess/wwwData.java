@@ -84,6 +84,13 @@ public class wwwData {
         });
     }
 
+    private static String findPattern(Pattern p, String t){
+        Matcher m;
+        m = p.matcher(t);
+        return (m.find())?m.group(1): "";
+    }
+
+
 //    public String getO(ArrayList<String> namephone) throws IOException {
 //        Pattern p_vn = Pattern.compile("<b>(-?\\d{2,4}-?\\d{0,2}-?\\d{0,2})<\\/b>");
 //        Pattern p_wordsonly = Pattern.compile("([А-Яа-я]+)',");
@@ -166,11 +173,5 @@ public class wwwData {
 //            }
 //        });
 //    }
-
-    private static String findPattern(Pattern p, String t){
-        Matcher m;
-        m = p.matcher(t);
-        return (m.find())?m.group(1): "";
-    }
 
 }

@@ -1,31 +1,61 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-   <title>KB Employer</title>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Bootstrap -->  
+   <link href="css/bootstrap.min.css" rel="stylesheet">
    <link rel="stylesheet" type="text/css" href="css/docbook.css">
+   <title>KB Employer</title>
    <script src="js/kb.js"></script>
-   <!--<script> hljs.initHighlightingOnLoad();  </script>-->
    <link type="text/css" rel="stylesheet" href="css/font-awesome/font-awesome.min.css">
 </head>
 
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
-<table>
-	  <tr>
-	  <td style="width: 35%">
-	  	<h4><span>Сотрудники Kaspi </span></h4>
-	  </td>
-      <td style="width: 35%">
-      	{info}
-      </td></tr>
-</table>
-<div class="navheader">
-	<hr>
+
+<header class="page-header">
+	<h3>Сотрудники Kaspi</h3>
+	<p class="lead"> {info} </p>
 	{header}
-	<hr>
-</div>
-<div class="table">
+	<form name="search" action="#" method="get" class="form-inline form-search pull-right">
+		<div class="input-group">
+			<label class="sr-only" for="searchInput">Search</label>
+			<input class="form-control" id="searchInput" type="text" name="search" placeholder="Search">
+			<div class="input-group-btn">
+				<button type="submit" class="btn btn-primary">GO</button>
+			</div>
+		</div>
+	</form>
+</header>
+<div class="container">
+
 	<div class="row">
-	    <div class="cardlist">
+
+    	<div class="form col-md-4">
+	     <h5>Фильтр</h5>
+         <form  class="form-horizontal form-inline form-search" id="filter" action="search">
+			<div class="input-group">
+         	<label> ФИО<br>
+         		<input id="" class="form-control" type="text" name="fio">
+         	</label><br>
+         	<label> Мобильный<br>
+         		<input id="mobile" class="form-control" type="text" name="mobile">
+         	</label><br>
+         	<label> Должность<br>
+         		<input id="grade" class="form-control" type="text" name="grade">
+         	</label><br>
+         	<label> Отдел<br>
+         		<input id="razd" class="form-control" type="text" name="razd">
+         	</label><br>
+			<input id="but_search" class="btn btn-primary" type="submit" value="Поиск" name="search">
+         </div></form>
+    	</div>
+
+	    <div class="cardlist col-md-8">
         	<ul>
         	<li><div class="razd">
 				<span> Департамент увмауму авмаув </span>
@@ -94,35 +124,19 @@
 
 		    </ul>
     	</div>
-
-    	<div class="sidebar">
-		 <div id="filtr">    	 
-	     <h5>Фильтр</h5>
-         <form id="filter" action="search">
-         	<label> ФИО<br>
-         		<input id="" type="text" name="fio">
-         	</label><br>
-         	<label> Мобильный<br>
-         		<input id="mobile" type="text" name="mobile">
-         	</label><br>
-         	<label> Должность<br>
-         		<input id="grade" type="text" name="grade">
-         	</label><br>
-         	<label> Отдел<br>
-         		<input id="razd" type="text" name="razd">
-         	</label><br>
-			<input id="but_search" type="submit" value="Поиск" name="search">
-         </form>
-         </div>
-    	</div>
 <!--    <div class="clearfix"></div> -->
 
 	</div>
+	<div class="navfooter">
+		<hr>
+		{footer}
+	</div>
+
 </div>
-<div class="navfooter">
-	<hr>
-	{footer}
-</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- ������⠢� ᪮�����஢���� ������� (����), ��� ������젮⤥��� 䠩�렯� ��� ����室����� -->  
+<script src="js/bootstrap.min.js"></script>
 </body>
 
 </html>
