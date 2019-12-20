@@ -12,7 +12,11 @@ import java.io.IOException;
  * Created by palchuk on 03.05.2018.
  */
 public class IndexServlet extends HttpServlet {
-    @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
+    /**
+     *
+     */
+    private static final long serialVersionUID = -1940983354965105964L;
+    @SuppressWarnings({ "FieldCanBeLocal", "UnusedDeclaration" })
     //todo: remove after module 2 home work
     private final DBService dbService;
 

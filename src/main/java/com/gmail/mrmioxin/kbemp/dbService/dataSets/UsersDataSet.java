@@ -1,8 +1,6 @@
 package com.gmail.mrmioxin.kbemp.dbService.dataSets;
 
 import com.gmail.mrmioxin.kbemp.Card;
-import com.google.gson.JsonObject;
-
 import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,22 +14,19 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class UsersDataSet extends Card {
-    private Long id;
     private Date date;
     private Date ldate;
     private Boolean deleted;
     private String history;
 
-    public UsersDataSet(){
+    public UsersDataSet() {
         this.date = new Date(System.currentTimeMillis());
         this.ldate = this.date;
         this.deleted = false;
     }
 
-    public UsersDataSet(Long id, Date date, String name,String parent, Long pid, String phone, String mobile, Integer tabnum,
-                        String grade, String avatar, Boolean deleted, String history) {
-                        //date,name,parent,pid,phone,mobile,tabnum,grade,avatar,deleted,history
-        this.id = id;
+    public UsersDataSet(Long id, Date date, String name, String parent, Long pid, String phone, String mobile,
+            Integer tabnum, String grade, String avatar, Boolean deleted, String history) {
         this.date = date;
         this.ldate = date;
         this.name = name;

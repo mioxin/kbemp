@@ -14,13 +14,10 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.net.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+// import java.util.regex.Matcher;
+// import java.util.regex.Pattern;
 
 
 /**
@@ -84,11 +81,11 @@ public class wwwData {
         });
     }
 
-    private static String findPattern(Pattern p, String t){
-        Matcher m;
-        m = p.matcher(t);
-        return (m.find())?m.group(1): "";
-    }
+    // private static String findPattern(Pattern p, String t){
+    //     Matcher m;
+    //     m = p.matcher(t);
+    //     return (m.find())?m.group(1): "";
+    // }
 
 
 //    public String getO(ArrayList<String> namephone) throws IOException {

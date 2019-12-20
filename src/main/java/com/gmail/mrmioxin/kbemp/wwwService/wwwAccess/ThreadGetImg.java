@@ -3,7 +3,7 @@ package com.gmail.mrmioxin.kbemp.wwwService.wwwAccess;
 import com.gmail.mrmioxin.kbemp.Card;
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import java.io.BufferedInputStream;
+//import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;

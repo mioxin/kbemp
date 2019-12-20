@@ -1,10 +1,8 @@
 package com.gmail.mrmioxin.kbemp;
 
-import com.gmail.mrmioxin.kbemp.wwwService.wwwService;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -203,18 +201,7 @@ public  class Card {
         m.appendTail(buffer);
         return buffer.toString();
     }
-    private static String cleant(String s){
-        Pattern p = Pattern.compile("\\&(\\w{4,5})");
-        Matcher m = p.matcher(s);
-        StringBuffer buffer = new StringBuffer();
-        while (m.find()) {
-            m.appendReplacement(buffer, mnemonics.get(m.group(1)));
-        } // while
-        m.appendTail(buffer);
-        return buffer.toString();
-    }
-
-
+    
     @Override
     public String toString() {
         return "Card{" +

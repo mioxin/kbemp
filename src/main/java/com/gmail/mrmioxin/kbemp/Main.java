@@ -13,8 +13,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
