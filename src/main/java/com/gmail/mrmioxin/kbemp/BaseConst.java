@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 public final class BaseConst {
     public static final Logger logg = Logger.getLogger(Main.class.getName());
     public static final String WWWINT="http://www-int";
+    public static final String PROXY="http://proxy-all.hq.bc";
+
     //получить разделы
     public static final String BASEADDR="http://www-int/modules/sotr_view/give_me_deps.php?id=";
     // поиск по имени или телефону для получения отчества

@@ -34,6 +34,7 @@ public class Main {
         DBService dbService = new DBService();
         dbService.printConnectInfo();
 
+        if (args.length <1) {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.addServlet(new ServletHolder(new IndexServlet(dbService)), "/*");
@@ -66,12 +67,13 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-//        cards = new Cards(dbService);
-//        cards.load(Paths.get("data.txt"));//первоначальная загрузка из файла
-//        cards.load("razd");
-//        System.out.println(cards.toString());
+    } else {
+       System.out.println("Загрузка данных в локальную базу...");  
+       cards = new Cards(dbService);
+//       cards.load(Paths.get("data.txt"));//первоначальная загрузка из файла
+       cards.load("razd");
+       System.out.println(cards.toString());
     }
-
+    }
 
 }

@@ -2,13 +2,13 @@ package com.gmail.mrmioxin.kbemp.wwwService.wwwAccess;
 
 import com.gmail.mrmioxin.kbemp.BaseConst;
 import com.gmail.mrmioxin.kbemp.Card;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
+// import org.apache.http.HttpEntity;
+// import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
+// import org.apache.http.util.EntityUtils;
 
 import java.util.logging.Logger;
 import java.util.regex.Matcher;

@@ -2,94 +2,70 @@ package com.gmail.mrmioxin.kbemp.wwwService;
 
 import com.gmail.mrmioxin.kbemp.BaseConst;
 import com.gmail.mrmioxin.kbemp.Card;
-import com.gmail.mrmioxin.kbemp.wwwService.wwwAccess.ThreadGetO;
 import com.gmail.mrmioxin.kbemp.wwwService.wwwAccess.wwwData;
-import org.apache.http.HttpHost;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.WinHttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
-import org.apache.http.ssl.SSLContextBuilder;
 
 import java.io.IOException;
 import java.net.ProxySelector;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-
 /**
  * Created by palchuk on 19.02.2018.
  */
 public class wwwService {
     private final CloseableHttpClient httpclient;
     private final wwwData apidata;
-    private SystemDefaultRoutePlanner routePlanner;
-    private SSLConnectionSocketFactory sslsf;
     private Logger logger = BaseConst.logg;
 
-
     public wwwService() {
-//        ConnectionKeepAliveStrategy myStrategy = new ConnectionKeepAliveStrategy() {
-//
-//            public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
-//                // Honor 'keep-alive' header
-//                HeaderElementIterator it = new BasicHeaderElementIterator(
-//                        response.headerIterator(HTTP.CONN_KEEP_ALIVE));
-//                while (it.hasNext()) {
-//                    HeaderElement he = it.nextElement();
-//                    String param = he.getName();
-//                    String value = he.getValue();
-//                    if (value != null && param.equalsIgnoreCase("timeout")) {
-//                        try {
-//                            return Long.parseLong(value) * 1000;
-//                        } catch(NumberFormatException ignore) {
-//                        }
-//                    }
-//                }
-//                HttpHost target = (HttpHost) context.getAttribute(
-//                        HttpClientContext.HTTP_TARGET_HOST);
-//                return 5 * 1000;
-//            }
-//
-//        };
 
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-// Increase max total connection to 200
-        cm.setMaxTotal(40);
-// Increase default max connection per route to 20
-        cm.setDefaultMaxPerRoute(20);
-// Increase max connections for localhost:80 to 50
-        HttpHost localhost = new HttpHost("locahost", 80);
-        cm.setMaxPerRoute(new HttpRoute(localhost), 50);
+        // SSL context for secure connections can be created either based on
+        // system or application specific properties.
+        // SSLContext sslcontext = SSLContexts.createSystemDefault();
+        // // Create a registry of custom connection socket factories for supported
+        // // protocol schemes.
+        // Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+        //         .register("http", PlainConnectionSocketFactory.INSTANCE)
+        //         .register("https", new SSLConnectionSocketFactory(sslcontext)).build();
 
-        routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault());
-        try {
-            sslsf = new SSLConnectionSocketFactory(SSLContextBuilder.create()
-                    .loadTrustMaterial(new TrustSelfSignedStrategy())
-                    .build(),
-                    new DefaultHostnameVerifier());
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        }
+        // PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry, new SystemDefaultDnsResolver());
+        // // Increase max total connection to 200
+        // cm.setMaxTotal(40);
+        // // Increase default max connection per route to 20
+        // cm.setDefaultMaxPerRoute(20);
+        // // Increase max connections for localhost:80 to 50
+        // HttpHost localhost = new HttpHost("locahost", 80);
+        // cm.setMaxPerRoute(new HttpRoute(localhost), 50);
 
-        this.httpclient = WinHttpClients.custom()
-                .setRoutePlanner(routePlanner)
-                .setConnectionManager(cm)
-//                .setSSLSocketFactory(sslsf)
-//                .setKeepAliveStrategy(myStrategy)
-                .build();
+        // SystemDefaultRoutePlanner routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault());
+
+        // // Use custom cookie store if necessary.
+        // CookieStore cookieStore = new BasicCookieStore();
+        // // Use custom credentials provider if necessary.
+        // CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        // // Create global request configuration
+        // RequestConfig defaultRequestConfig = RequestConfig.custom()
+        //     .setCookieSpec(CookieSpecs.DEFAULT)
+        //     .setExpectContinueEnabled(true)
+        //     .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
+        //     .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM))
+        //     .build();
+
+        // Create an HttpClient with the given custom dependencies and configuration.
+        this.httpclient = WinHttpClients.createDefault();
+        // this.httpclient = WinHttpClients.custom()
+        //     .setConnectionManager(cm)
+        //     .setDefaultCookieStore(cookieStore)
+        //     .setDefaultCredentialsProvider(credentialsProvider)
+        //     .setRoutePlanner(routePlanner)
+        //     //.setProxy(new HttpHost(BaseConst.PROXY, 8080))
+        //     .setDefaultRequestConfig(defaultRequestConfig)
+        //     .build();
+
         this.apidata = new wwwData(httpclient);
     }
 
@@ -97,47 +73,47 @@ public class wwwService {
         return apidata;
     }
 
-    public  CloseableHttpClient getHttpclient() {
+    public CloseableHttpClient getHttpclient() {
         return httpclient;
     }
 
-    public Map<String,Card> get(String str){
+    public Map<String, Card> get(String str) {
 
         if (!WinHttpClients.isWinAuthAvailable()) {
             System.out.println("Integrated Win auth is not supported!!!");
         }
-//        System.out.println("Executing request " + httpget.getRequestLine());
-        Map<String,Card>  mCards = new HashMap<>();
+        // System.out.println("Executing request " + httpget.getRequestLine());
+        Map<String, Card> mCards = new HashMap<>();
         ArrayList<Card> atmpCards = new ArrayList<>();
         ArrayList<String> aDeps = new ArrayList<>();
         ArrayList<String> atmpDeps = new ArrayList<>();
         aDeps.add(str);
 
-        while (aDeps.size() > 0){
+        while (aDeps.size() > 0) {
             for (String id : aDeps) {
                 try {
                     atmpCards = apidata.getCards(id);
                     for (Card c : atmpCards) {
                         if (c.isParent()) {
-//                            mCards.put(c.getidr(),c);
+                            // mCards.put(c.getidr(),c);
                             atmpDeps.add(c.getidr());
-                        } else {//добавляем отчество upd: только после проверки есть ли такой человек
-//                            ThreadGetO thr = new ThreadGetO(httpclient, c, "thread"+c.getTabnum());
-//                            ThreadGetO.threads.add(thr);
-//                            thr.start();
+                        } else {// добавляем отчество upd: только после проверки есть ли такой человек
+                            // ThreadGetO thr = new ThreadGetO(httpclient, c, "thread"+c.getTabnum());
+                            // ThreadGetO.threads.add(thr);
+                            // thr.start();
                         }
                         logger.fine(c.toString());
                     }
-//                    for (ThreadGetO th: ThreadGetO.threads){
-//                        th.join();
-//                    }
-                    for (Card c : atmpCards){
-                        mCards.put(c.getidr(),c);
+                    // for (ThreadGetO th: ThreadGetO.threads){
+                    // th.join();
+                    // }
+                    for (Card c : atmpCards) {
+                        mCards.put(c.getidr(), c);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
+                    // } catch (InterruptedException e) {
+                    // e.printStackTrace();
                 }
                 atmpCards.clear();
             }
