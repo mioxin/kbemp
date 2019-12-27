@@ -66,7 +66,7 @@ public class ThreadGetO extends  ThreadGet {
                         //удаляем пустые строки
                         aResponse.removeAll(Arrays.asList("", " "));
                         if (aResponse.size() == 0) {
-                            System.out.println(card.getName() + ". Response: " + aResponse);
+                            logger.warning(card.getName() + ". Response: " + aResponse);
                             return null;
                         }
                         if (aResponse.size() > 1) {
@@ -92,9 +92,9 @@ public class ThreadGetO extends  ThreadGet {
         if (!newname.isEmpty() && (newname != null)) {
             card.setname(newname);
         }else {
-            System.out.println(card.getName() + ". Middle name: " + newname);
+            logger.info(card.getName() + ". Middle name: " + newname);
         }
-        System.out.print("\rEND ["+ thrName + "] thread. Count: " + count++ +" ");
+        logger.info("END ["+ thrName + "] thread. Count: " + count++);
     }
 
 }

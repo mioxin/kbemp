@@ -80,7 +80,7 @@ public class wwwService {
     public Map<String, Card> get(String str) {
 
         if (!WinHttpClients.isWinAuthAvailable()) {
-            System.out.println("Integrated Win auth is not supported!!!");
+            logger.warning("Integrated Win auth is not supported!!!");
         }
         // System.out.println("Executing request " + httpget.getRequestLine());
         Map<String, Card> mCards = new HashMap<>();
@@ -102,7 +102,7 @@ public class wwwService {
                             // ThreadGetO.threads.add(thr);
                             // thr.start();
                         }
-                        logger.fine(c.toString());
+                        logger.info(c.toString());
                     }
                     // for (ThreadGetO th: ThreadGetO.threads){
                     // th.join();

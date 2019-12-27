@@ -1,5 +1,6 @@
 package com.gmail.mrmioxin.kbemp.wwwService.wwwAccess;
 
+import com.gmail.mrmioxin.kbemp.BaseConst;
 import com.gmail.mrmioxin.kbemp.Card;
 import org.apache.http.impl.client.CloseableHttpClient;
 
@@ -35,9 +36,9 @@ public class ThreadGetImg extends  ThreadGet {
 
         Pattern p_host = Pattern.compile("^(\\S+?\\.\\S+?\\.\\S+?\\/)");
         if (findPattern(p_host,url,1) == "") {
-            base = "http://www-int";
+            base = BaseConst.WWWINT;
         }else {
-            base = "http://";
+            base = "https://";
         }
         URI uri = null;
         try {
@@ -54,7 +55,7 @@ public class ThreadGetImg extends  ThreadGet {
     @Override
     public void run() {
         if (Files.exists(imgFile)) {//если файл уже есть - trow, иначе скачиваем
-            logger.fine("Файл " + imgFile.toString() + " уже существует.");
+            logger.info("Файл " + imgFile.toString() + " уже существует.");
         } else {
             if (Files.isDirectory(imgFile.getParent())) {
             } else {//если нет папки - создаем
@@ -70,7 +71,7 @@ public class ThreadGetImg extends  ThreadGet {
                         logger.warning("Файл \"" + httpget.getURI().toString() + "\" не найден. Скачать невозможно.");
                         return null;
                     } else {
-                        logger.fine("Скачиваем файл \"" + httpget.getURI().toString() + "\".");
+                        logger.info("Скачиваем файл \"" + httpget.getURI().toString() + "\".");
                         /*Download avatar image*/
 //                        BufferedInputStream bis = new BufferedInputStream(result.getEntity().getContent());
                         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(imgFile.toFile()));
@@ -85,7 +86,7 @@ public class ThreadGetImg extends  ThreadGet {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.print("\rEND [" + thrName + "] thread. Count: " + count++ + ". ");
+            logger.info("END [" + thrName + "] thread. Count: " + count++);
         }
     }
 }

@@ -27,10 +27,9 @@ public class wwwData {
     private final CloseableHttpClient httpclient;
     private HttpGet httpget;
     //private Executor executor;
-    private Logger logger;
+    private Logger logger = BaseConst.logg;
 
     public wwwData(CloseableHttpClient httpclient) {
-        this.logger = BaseConst.logg;
         //this.executor = new Executor(httpclient);
         httpget = new HttpGet();
         httpget.addHeader("Connection", "keep-alive");

@@ -168,7 +168,7 @@ public class DBService {
             }
             hist += ecard.getValue().compareCard(oldcard);
             if (hist.equals("")) { //изменений нет
-                logger.fine(tabnum + ": Карточка не изменилась.");
+                logger.info(tabnum + ": Карточка не изменилась.");
                 // обновить ldate  в карточке users
                 udao.setLdate(oldid, new Date(System.currentTimeMillis()));
                 return oldid;
@@ -206,7 +206,7 @@ public class DBService {
         }
         //newcard.setparentid(pid);
         udao.insert(ecard.getValue(), hist);
-        System.out.println("Insert user " + ecard.getValue().getName());
+        logger.info("Insert user " + ecard.getValue().getName());
         newid = udao.getId(ecard.getValue().getTabnum().toString());
         udao.setparentId(newid,pid);
 
@@ -243,7 +243,7 @@ public class DBService {
                     errcount++;
                 }
             }
-            logger.fine("Inserted in DEPS: "+depcount+". Error: "+errcount);
+            logger.info("Inserted in DEPS: "+depcount+". Error: "+errcount);
         //заполнение PID в таблице deps
             int count=0;
             int er = 0;
@@ -266,7 +266,7 @@ public class DBService {
                     logger.warning("Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getName());
                     er++;
                 }
-                System.out.print("\rFill PID for DEPS in DB: " + count + ". Error: " + er);
+                logger.info("Fill PID for DEPS in DB: " + count + ". Error: " + er);
             }
             System.out.println();
 //удаляем из deps дубликаты (некоторые карточки deps не изменились, но были повторно скачаны и внесены в deps)
@@ -326,10 +326,10 @@ public class DBService {
                 }
             }
         }
-        System.out.println("Обработано users: " + usercount+ ". Не найдено PID: " + udepcash.size() +". Time: " + (System.nanoTime()-t)/(usercount) + " ns./user ");
-        System.out.println("users.ID : deps.name");
+        logger.info("Обработано users: " + usercount+ ". Не найдено PID: " + udepcash.size() +". Time: " + (System.nanoTime()-t)/(usercount) + " ns./user ");
+        logger.info("users.ID : deps.name");
         for (Map.Entry<Long, PName> e:udepcash.entrySet()) {
-            System.out.println(e.getKey() +": " + e.getValue().getName());
+            logger.info(e.getKey() +": " + e.getValue().getName());
         }
         return  (depcount + usercount);
     }

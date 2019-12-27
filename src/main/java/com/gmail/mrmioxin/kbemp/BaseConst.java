@@ -7,7 +7,8 @@ import java.util.logging.Logger;
  */
 public final class BaseConst {
     public static final Logger logg = Logger.getLogger(Main.class.getName());
-    public static final String WWWINT="http://www-int";
+    
+    public static final String WWWINT="https://www-int.hq.bc";
     public static final String PROXY="http://proxy-all.hq.bc";
 
     //получить разделы

@@ -19,13 +19,14 @@ public class Cards {
     private Map<String, Card> mCards;
     public wwwService site;
     private static Logger logger= BaseConst.logg;
+    
     private DBService dbService;
 
     public Cards(DBService dbServ) {
         this.mCards = new HashMap<>();
         this.site =new wwwService();
         this.dbService = dbServ;
-        logger.fine("Cards: new wwwService");
+        logger.info("Cards: new wwwService");
     }
 
     public void add(ArrayList<Card> cards) {
@@ -37,15 +38,8 @@ public class Cards {
     }
 
     public void load(String razd) throws DBException {
-//        DBService dbService = new DBService();
-//        dbService.printConnectInfo();
-
-//      public Card(String idr, String name, String parent, Long pid, Boolean hasChild, String parentname) {
-//        this.mCards.put(razd,new Card("#","Корневой","root",0L,true,"//"));
-
         this.mCards.putAll(site.get(razd));
         dbService.updateDB(this.mCards);
-
     }
 
     public void load(Path file) throws DBException, InterruptedException {
@@ -55,7 +49,7 @@ public class Cards {
         this.mCards.put ("razd2",new Card("razd2","Головной Банк","root",0L,true,""));
         this.mCards.put ("razd154",new Card("razd154","Филиальная сеть","root",0L, true,""));
         this.mCards.putAll ((new fileService()).get(file));
-        logger.fine("Get " + mCards.size() + " cards");
+        logger.info("Get " + mCards.size() + " cards");
 
         //добавить отчество к name wwwData.getO()
         int count = 0;
@@ -66,15 +60,6 @@ public class Cards {
                 ThreadGetO thr = new ThreadGetO(site.getHttpclient(),c, "threadO"+count);
                 ThreadGetO.threads.add(thr);
                 thr.start();
-//                thr.join();
-//                System.out.println(thr.toString());
-//                ArrayList<String> nph = c.getNamePhone();
-//                try {
-//                    c.setname(site.getApidata().getO(nph));
-//
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
             }
             count++;
         }
@@ -85,7 +70,7 @@ public class Cards {
         System.out.println("End of update FIO.");
         dbService.cleanUp();
         Integer dbcount = dbService.updateDB(mCards);
-        logger.fine("Get " + dbcount + " cards");
+        logger.info("Get " + dbcount + " cards");
     }
 
     public Card getcard(String idr){

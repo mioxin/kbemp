@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
  * Created by palchuk on 29.01.2018.
  */
 public  class Card {
-    private Logger logger =  BaseConst.logg;
+    private Logger logger = Logger.getLogger(Main.class.getName());// BaseConst.logg;
+    
     protected String idr;
     protected String name;
     protected String parent;
@@ -43,11 +44,12 @@ public  class Card {
     private static Mnems mnemonics = new Mnems(new String[]{"nbsp", " ", "lt", "<", "gt", ">", "amp", "&","raquo","\"","laquo","\"","quot","\""});
 
     public Card(JsonObject json) {
-        Pattern p_tabn = Pattern.compile("(?si)opencard\\(\\'(\\d+)\\'");
+        //Pattern p_tabn = Pattern.compile("(?si)opencard\\(\\'(\\d+)\\'");
+        Pattern p_tabn = Pattern.compile("data-tabnum\\=\\\"(\\d+)\\\"");
         Pattern p_dol = Pattern.compile("class\\=\\\"s_4\\\"\\>(.+)\\<\\/td");
-        Pattern p_fio = Pattern.compile("class\\=\\\"s_1\\\"\\>(\\W+\\s\\W+)\\<\\/td");
+        Pattern p_fio = Pattern.compile("class\\=\\\"s_1\\\"\\>(\\W+\\s\\W+)\\<");
         Pattern p_vn = Pattern.compile("\\<b\\>(-?\\d{2,4}-?\\d{0,2}-?\\d{0,2})");
-        Pattern p_sot = Pattern.compile("(\\+\\d \\(\\d\\d\\d\\) \\d\\d\\d-\\d\\d-\\d\\d)");
+        Pattern p_sot = Pattern.compile("(\\+\\d\\s*\\(\\d\\d\\d\\)\\s*\\d\\d\\d-\\d\\d-\\d\\d)");
         Pattern p_ava = Pattern.compile("img src\\=\\\"(http(s|)://|)([\\s\\S]+)\\\" wi");
 
         String text = json.getAsJsonPrimitive("text").getAsString();
@@ -78,7 +80,7 @@ public  class Card {
         String[] ac;
         ac = str.split("\\t");
         if (ac.length <= 1){
-            logger.fine("Файл должен содержать разделитель полей табуляцию.");
+            logger.info("Файл должен содержать разделитель полей табуляцию.");
             throw new IOException();
         }
         ArrayList<String> namephone= new ArrayList<>();
