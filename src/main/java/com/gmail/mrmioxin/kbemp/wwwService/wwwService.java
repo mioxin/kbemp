@@ -83,10 +83,10 @@ public class wwwService {
             logger.warning("Integrated Win auth is not supported!!!");
         }
         // System.out.println("Executing request " + httpget.getRequestLine());
-        Map<String, Card> mCards = new HashMap<>();
-        ArrayList<Card> atmpCards = new ArrayList<>();
-        ArrayList<String> aDeps = new ArrayList<>();
-        ArrayList<String> atmpDeps = new ArrayList<>();
+        Map<String, Card> mCards = new HashMap<>(); //все карточки
+        ArrayList<Card> atmpCards = new ArrayList<>(); // временная все карточки
+        ArrayList<String> aDeps = new ArrayList<>(); // карточки отделов
+        ArrayList<String> atmpDeps = new ArrayList<>(); // временная карточки отделов
         aDeps.add(str);
 
         while (aDeps.size() > 0) {
@@ -95,20 +95,13 @@ public class wwwService {
                     atmpCards = apidata.getCards(id);
                     for (Card c : atmpCards) {
                         if (c.isParent()) {
-                            // mCards.put(c.getidr(),c);
                             atmpDeps.add(c.getidr());
-                        } else {// добавляем отчество upd: только после проверки есть ли такой человек
-                            // ThreadGetO thr = new ThreadGetO(httpclient, c, "thread"+c.getTabnum());
-                            // ThreadGetO.threads.add(thr);
-                            // thr.start();
+                            logger.info("atmpDeps.add: " + c.toString());
+                        } else {
                         }
-                        logger.info(c.toString());
                     }
-                    // for (ThreadGetO th: ThreadGetO.threads){
-                    // th.join();
-                    // }
-                    for (Card c : atmpCards) {
-                        mCards.put(c.getidr(), c);
+                    for (Card c : atmpCards){
+                        mCards.put(c.getidr(),c);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -121,6 +114,7 @@ public class wwwService {
             aDeps.addAll(atmpDeps);
             atmpDeps.clear();
         }
+        logger.info("GO OUT from wwwService.");
         return mCards;
     }
 }

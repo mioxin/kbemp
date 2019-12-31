@@ -1,5 +1,7 @@
 package com.gmail.mrmioxin.kbemp;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
@@ -55,7 +57,28 @@ public  class Card {
         String text = json.getAsJsonPrimitive("text").getAsString();
         this.idr = json.getAsJsonPrimitive("id").getAsString();//Integer.getInteger(json.getAsString("id"));
         this.parent = json.getAsJsonPrimitive("parent").getAsString();
-        this.hasChild = json.getAsJsonPrimitive("children").getAsBoolean();
+        this.hasChild = true; //по умолчанию карточка это отдел
+        JsonElement attr;
+        if (json.has("li_attr")) {
+            attr = json.get("li_attr");
+            if (attr.isJsonObject()) {
+                JsonObject json_attr = attr.getAsJsonObject();
+                try {
+                    this.hasChild = (json_attr.getAsJsonPrimitive("class").getAsString().equals("sotr"))?false:true;
+                    //logger.info(json_attr.getAsJsonPrimitive("class").getAsString());
+                }
+                catch (JsonIOException e) {
+                    System.err.println("Failed get class=sotr from li_attr " + e.getLocalizedMessage());
+                    logger.severe("Failed get class='sotr' from li_attr ");
+                }
+            } else {
+                logger.warning(this.idr + " 'li_attr' is not JsonObject" + json.get("li_attr"));    
+            }
+        } else {
+            logger.info(this.idr + " insert in DEP. It has not 'li_attr'");
+        };
+        
+        //this.hasChild = json.getAsJsonPrimitive("children").getAsBoolean();
         String stabnum ="";
         if (hasChild) {
             this.name = cleanw(text);

@@ -39,6 +39,7 @@ public class Cards {
 
     public void load(String razd) throws DBException {
         this.mCards.putAll(site.get(razd));
+        logger.info("END of site.get.");
         dbService.updateDB(this.mCards);
     }
 
