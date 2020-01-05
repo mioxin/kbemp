@@ -91,13 +91,17 @@ public class wwwService {
 
         while (aDeps.size() > 0) {
             for (String id : aDeps) {
+                logger.info("--# "+id+" #----------------------------------------------");
                 try {
                     atmpCards = apidata.getCards(id);
                     for (Card c : atmpCards) {
                         if (c.isParent()) {
-                            atmpDeps.add(c.getidr());
-                            logger.info("atmpDeps.add: " + c.toString());
-                        } else {
+                            if (c.getidr().startsWith("razd")) {
+                                atmpDeps.add(c.getidr());
+                                logger.info("atmpDeps.add: " + c.toString());
+                            } else {
+                                logger.info(c.getidr() + " not add in atmpDep.");
+                            }
                         }
                     }
                     for (Card c : atmpCards){

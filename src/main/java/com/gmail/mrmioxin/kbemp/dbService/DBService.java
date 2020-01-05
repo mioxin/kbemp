@@ -251,9 +251,9 @@ public class DBService {
             ddao.deleteAll(); // пометим как удаленные все старые записи в deps, т.к. скачали из все заново в
                               // HashMap
             connection.setAutoCommit(false);
+            logger.info("Заполняем DEP...........................................");
             for (Map.Entry<String, Card> entry : cards.entrySet()) {
                 try {
-                    logger.info("Заполняем DEP...........................................");
                     if (entry.getValue().isParent()) {// заполняем deps из HashMap
                         ddao.insert(entry.getValue(), "");
                         depcount++;
@@ -327,10 +327,11 @@ public class DBService {
                     logger.warning("Can not inser user: " + entry.getValue().getName());
                 }
             }
+            logger.info("---# "+ThreadGetImg.threads.size() + " потоков создано в ThreadGetImg #------------------");
             for (ThreadGetImg th : ThreadGetImg.threads) {// ждем завершения потоков ThreadGetImg созданных в addUser()
                 try {
                     th.join();
-                    logger.info("Ждем завершения потоков ThreadGetImg созданных в addUser()");
+                    logger.info(th.getName() + ": Ждем завершения потоков ThreadGetImg созданных в addUser()");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

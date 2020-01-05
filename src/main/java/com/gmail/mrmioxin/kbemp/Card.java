@@ -68,14 +68,14 @@ public  class Card {
                     //logger.info(json_attr.getAsJsonPrimitive("class").getAsString());
                 }
                 catch (JsonIOException e) {
-                    System.err.println("Failed get class=sotr from li_attr " + e.getLocalizedMessage());
-                    logger.severe("Failed get class='sotr' from li_attr ");
+                    System.err.println(this.idr + "Failed get class=sotr from li_attr. " + e.getLocalizedMessage());
+                    logger.severe(this.idr + "Failed get class='sotr' from li_attr.");
                 }
             } else {
                 logger.warning(this.idr + " 'li_attr' is not JsonObject" + json.get("li_attr"));    
             }
         } else {
-            logger.info(this.idr + " insert in DEP. It has not 'li_attr'");
+            logger.warning(this.idr + " has not 'li_attr'.");
         };
         
         //this.hasChild = json.getAsJsonPrimitive("children").getAsBoolean();
