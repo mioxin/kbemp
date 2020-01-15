@@ -168,7 +168,7 @@ public class DBService {
                     oldParentName = new PName(ddao.get(oldcard.getparentid()).getName(),
                             ddao.get(oldcard.getparentid()).getparentname());
                 } catch (JdbcSQLException e) {
-                    logger.warning("ID старой карты " + oldcard.getparentid() + " в базе DEPS не найден.");
+                    logger.severe("ID старой карты " + oldcard.getparentid() + " в базе DEPS не найден.");
                     oldParentName = new PName("None", "root");
                 }
             }
@@ -185,6 +185,11 @@ public class DBService {
                 // переносим отчество из старой карточки, если оно есть
                 if (oldcard.getName().split(" ").length > 2) {
                     ecard.getValue().setname(ecard.getValue().getName() + " " + oldcard.getName().split(" ")[2]);
+                } else {// если отчества в старой карточке нет проверяем на сайте
+                    ThreadGetO thro = new ThreadGetO(Main.cards.site.getHttpclient(), ecard.getValue(),
+                            "threadWWWO-" + ecard.getValue().getName());
+                    ThreadGetO.threads.add(thro);
+                    thro.start();
                 }
                 if (hist.contains("avatar")) {// если изменилось фото - скачать
                     ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
@@ -197,15 +202,28 @@ public class DBService {
             }
         } else {// при загрузке из www-int, если карточка новая - добавляем отчество из www-int
             // при загрузке из файла это не требуется - отчество добавдяется ранее
-            ThreadGetO thr = new ThreadGetO(Main.cards.site.getHttpclient(), ecard.getValue(),
+            ThreadGetO thro = new ThreadGetO(Main.cards.site.getHttpclient(), ecard.getValue(),
                     "threadWWWO-" + ecard.getValue().getName());
-            ThreadGetO.threads.add(thr);
+            ThreadGetO.threads.add(thro);
+            thro.start();
+            try {
+                thro.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                logger.severe("Join to ThreadGetO error: " +e );
+            }
+            //скачиваем фото
+            ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
+                    "threadImg-" + ecard.getValue().getTabnum().toString());
+            ThreadGetImg.threads.add(thr);
             thr.start();
             try {
                 thr.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                logger.severe("Join to ThreadGetImg error: " +e );
             }
+
         }
         // Card newcard = ecard.getValue();
         Long pid = 0L;
@@ -214,12 +232,12 @@ public class DBService {
             pid = ddao.getId(newParentName.getName(), newParentName.getParentName());
             logger.info("Найден PID для NAME: " +  newParentName.getName() +", PARENT: " + newParentName.getParentName() + ", PID=" + pid);
         } catch (SQLException e) {
-            logger.warning("Не найден PID для NAME: " +  newParentName.getName() +", PARENT: " + newParentName.getParentName());
+            logger.severe("Не найден PID для NAME: " +  newParentName.getName() +", PARENT: " + newParentName.getParentName());
             try {
                 pid = ddao.getId(newParentName.getName());
                 logger.info("Найден PID для NAME: " +  newParentName.getName() +", PARENT: null" + ", PID=" + pid);
             } catch (SQLException ex) {
-                logger.warning("Не найден PID для NAME: " +  newParentName.getName() +", PARENT: null");
+                logger.severe("Не найден PID для NAME: " +  newParentName.getName() +", PARENT: null");
                 nopid = true;
             }
         }
@@ -260,7 +278,7 @@ public class DBService {
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
-                    logger.warning(
+                    logger.severe(
                             "Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getName());
                     errcount++;
                 }
@@ -286,13 +304,12 @@ public class DBService {
                         count++;
                     }
                 } catch (SQLException e) {
-                    logger.warning(
+                    logger.severe(
                             "Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getName());
                     er++;
                 }
             }
             logger.info("Fill PID for DEPS in DB: " + count + ". Error: " + er);
-            System.out.println();
             // удаляем из deps дубликаты (некоторые карточки deps не изменились, но были
             // повторно скачаны и внесены в deps)
             ddao.dropDoubleRow();
@@ -324,7 +341,7 @@ public class DBService {
                 } catch (DBException e) {
                     // e.printStackTrace();
                     errcount++;
-                    logger.warning("Can not inser user: " + entry.getValue().getName());
+                    logger.severe("Can not insert user (entry is parent): " + entry.getValue().getName());
                 }
             }
             logger.info("---# "+ThreadGetImg.threads.size() + " потоков создано в ThreadGetImg #------------------");
@@ -334,24 +351,28 @@ public class DBService {
                     logger.info(th.getName() + ": Ждем завершения потоков ThreadGetImg созданных в addUser()");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    logger.severe("Join to ThreadGetImg error: " +e );
                 }
             }
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException ignore) {
+                logger.severe("Rollback error: " +ignore);
             }
             throw new DBException(e);
         } finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException ignore) {
+                logger.severe("Set Autocommit back error: " + ignore);
             }
             for (ThreadGetImg th : ThreadGetImg.threads) {
                 try {
                     th.join();
                     logger.info("Finally: Ждем завершения потоков ThreadGetImg созданных в addUser()");
                 } catch (InterruptedException e) {
+                    logger.severe("Join to ThreadGetImg error: " +e );
                     e.printStackTrace();
                 }
             }

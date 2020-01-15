@@ -11,11 +11,8 @@ import java.sql.SQLException;
 import java.util.Map;
 
 /**
- * @author v.chibrikov
- *         <p>
- *         Пример кода для курса на https://stepic.org/
- *         <p>
- *         Описание курса и лицензия: https://github.com/vitaly-chibrikov/stepic_java_webserver
+ * @author 
+ *         
  */
 public class UsersDAO  implements IDao {
     private static final String TABLE = "users";

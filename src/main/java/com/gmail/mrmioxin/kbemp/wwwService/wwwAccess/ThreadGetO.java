@@ -30,8 +30,10 @@ public class ThreadGetO extends ThreadGet {
         try {
             uri = new URI(BaseConst.FIOADDR + URLEncoder.encode(c.getName(), "UTF-8") + "&type=1");
         } catch (URISyntaxException e) {
+            logger.severe("Get URI fot Img error: " +e );
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
+            logger.severe("Get URI fot Img error: " +e );
             e.printStackTrace();
         }
         this.httpget.setURI(uri);
@@ -39,7 +41,8 @@ public class ThreadGetO extends ThreadGet {
 
     @Override
     public void run() {
-        // Pattern p_vn = Pattern.compile("<b>(-?\\d{2,4}-?\\d{0,2}-?\\d{0,2})<\\/b>");
+        // <td class="s_3"><span class="s_3">вн</span> <b>405-62-1</b></td>
+        Pattern p_vn = Pattern.compile("<b>(-?\\d{2,4}-?\\d{0,2}-?\\d{0,2})<\\/b>");//вн телефон
         Pattern p_tab = Pattern.compile("opencard\\(\\'(-?\\d{3,})\\',");// tabnum
         // Pattern p_sn = Pattern.compile("<span.+</span>.* -?(\\S+)</td>");//отчество
         // //
@@ -65,6 +68,7 @@ public class ThreadGetO extends ThreadGet {
                         try {
                             Collections.addAll(aResponse, EntityUtils.toString(entity).split(BaseConst.SEARCHDELIM1));
                         } catch (IOException e) {
+                            logger.severe("Add response to list error: " +e );
                             e.printStackTrace();
                         }
                         // удаляем пустые строки
@@ -75,7 +79,7 @@ public class ThreadGetO extends ThreadGet {
                         }
                         if (aResponse.size() > 1) {
                             for (String s : aResponse) {
-                                if (findPattern(p_tab, s, 1).equals(card.getTabnum().toString())) {
+                                if (findPattern(p_vn, s, 1).equals(card.getPhone().toString())) {
                                     fio = card.getName() + findPattern(p_sn, s, 4);
                                 }
                             }
@@ -90,6 +94,7 @@ public class ThreadGetO extends ThreadGet {
 
             });
         } catch (IOException e) {
+            logger.severe("HTTPclient ThreadGetO ["+thrName+"] error: " +e );
             e.printStackTrace();
         }
         logger.info(card.getName() + ". Middle name: " + newname);

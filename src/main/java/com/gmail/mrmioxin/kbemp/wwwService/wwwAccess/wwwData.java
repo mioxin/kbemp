@@ -56,6 +56,7 @@ public class wwwData {
             if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
                 if (entity == null) {
+                    logger.warning("Ответ не содержит данных: " + response.toString());
                     return null;
                 } else {
                     //return EntityUtils.toString(entity);
@@ -63,6 +64,7 @@ public class wwwData {
                     try {
                         jarray = new JsonParser().parse(EntityUtils.toString(entity)).getAsJsonArray();
                     } catch (IOException e) {
+                        logger.severe("Don't parse entity: " + EntityUtils.toString(entity));
                         e.printStackTrace();
                     }
                     JsonObject jo;
@@ -70,6 +72,8 @@ public class wwwData {
                         jo = (je.isJsonObject()) ? je.getAsJsonObject() : null;
                         if (jo != null) {
                             aCards.add(new Card(jo));
+                        } else {
+                            logger.warning("Not JSON Object: " + je.getAsString());
                         }
                     }
                 }

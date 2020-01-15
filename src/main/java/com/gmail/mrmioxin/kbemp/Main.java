@@ -73,7 +73,7 @@ public class Main {
             cards = new Cards(dbService);
             // cards.load(Paths.get("data.txt"));//первоначальная загрузка из файла
             cards.load("razd");
-            logger.info(cards.toString());
+            logger.info("END load to DB.");
         }
     }
 

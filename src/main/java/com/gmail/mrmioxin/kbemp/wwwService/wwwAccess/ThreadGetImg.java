@@ -28,11 +28,6 @@ public class ThreadGetImg extends  ThreadGet {
         super(site,c,nameThread);
         String base="";
         String url = c.getAvatar();
-//        //удалить из имени файла хвост после знака '?' ("http://hr-filesrv.hq.bc/data/avatars/302716.jpg?1704")
-//        int posv = url.indexOf("?");
-//        if (posv>0) {
-//            url = url.substring(0,posv);
-//        }
 
         Pattern p_host = Pattern.compile("^(\\S+?\\.\\S+?\\.\\S+?\\/)");
         if (findPattern(p_host,url,1) == "") {
@@ -44,10 +39,12 @@ public class ThreadGetImg extends  ThreadGet {
         try {
             uri = new URI( base + url);
         } catch (URISyntaxException e) {
+            logger.severe("Get URI fot Img error: " +e );
             e.printStackTrace();
         }
         this.httpget.setURI(uri);
         imgFile = Paths.get(uri.getHost() + uri.getPath());
+        logger.info("Создали поток "+thrName+" для скачивания imgFile: " + imgFile.toString());
 
     }
 
@@ -57,13 +54,15 @@ public class ThreadGetImg extends  ThreadGet {
         if (Files.exists(imgFile)) {//если файл уже есть - trow, иначе скачиваем
             logger.info("Файл " + imgFile.toString() + " уже существует.");
         } else {
-            if (Files.isDirectory(imgFile.getParent())) {
+            if (Files.isDirectory(imgFile.getParent())) {//папка уже есть
             } else {//если нет папки - создаем
                 try {
                     Files.createDirectories(imgFile.getParent());
                 } catch (IOException e) {
+                    logger.severe("Create folder error: " +e );
                     e.printStackTrace();
                 }
+                logger.info("Create folder: " + imgFile.toString());
             }
             try {
                 httpClient.execute(httpget, result -> {
@@ -72,21 +71,17 @@ public class ThreadGetImg extends  ThreadGet {
                         return null;
                     } else {
                         logger.info("Скачиваем файл \"" + httpget.getURI().toString() + "\".");
-                        /*Download avatar image*/
-//                        BufferedInputStream bis = new BufferedInputStream(result.getEntity().getContent());
                         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(imgFile.toFile()));
                         result.getEntity().writeTo(bos);
-//                        int inByte;
-//                        while((inByte = bis.read()) != -1) bos.write(inByte);
-//                        bis.close();
                         bos.close();
                         return 1;
                     }
                 });
             } catch (IOException e) {
+                logger.severe("HTTPclient ThreadGetImg ["+thrName+"] error: " +e );
                 e.printStackTrace();
             }
-            logger.info("END [" + thrName + "] thread. Count: " + count++);
         }
+        logger.info("END [" + thrName + "] thread. Count: " + count++);
     }
 }

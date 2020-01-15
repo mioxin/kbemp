@@ -72,10 +72,10 @@ public  class Card {
                     logger.severe(this.idr + "Failed get class='sotr' from li_attr.");
                 }
             } else {
-                logger.warning(this.idr + " 'li_attr' is not JsonObject" + json.get("li_attr"));    
+                //logger.warning(this.idr + " 'li_attr' is not JsonObject" + json.get("li_attr"));    
             }
         } else {
-            logger.warning(this.idr + " has not 'li_attr'.");
+            //logger.warning(this.idr + " has not 'li_attr'.");
         };
         
         //this.hasChild = json.getAsJsonPrimitive("children").getAsBoolean();
@@ -186,6 +186,10 @@ public  class Card {
 
     public String getName() {
         return name;
+    }
+
+    public String getPhone() {
+        return phone;
     }
 
     public Integer getTabnum() {
