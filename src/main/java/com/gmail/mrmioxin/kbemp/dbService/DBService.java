@@ -15,10 +15,10 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-//import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -26,6 +26,21 @@ import java.util.logging.Logger;
  *
  */
 public class DBService {
+    private static final String THREAD_O = "---# {0} потоков создано в ThreadGetO #------------------";
+    private static final String THREAD_I = "---# {0} потоков создано в ThreadGetImg #------------------";
+    private static final String ADDED_USERS = "Обработано users: {0}. Не найдено PID: {1}. Time: {2} ms./user. \r\nНе найдены:\r\n----START----\r\n";
+    // private static final String WAIT_END_THREAD_I = "Finally {0}: Ждем завершения потоков ThreadGetImg созданных в addUser()";
+    // private static final String WAIT_END_THREAD_O = "Finally {0}: Ждем завершения потоков ThreadGetO созданных в addUser()";
+    private static final String NOT_FAUND_PID_1 = "Не найден PID для NAME: {0}, PARENT: null";
+    private static final String FAUND_PID_1 = "Найден PID для NAME: {0}, PARENT: null, PID={1}";
+    private static final String NOT_FAUND_PID = "Не найден PID для NAME: {0}, PARENT: {1}";
+    private static final String FOUND_PID = "Найден PID для NAME: {0}, PARENT: {1}, PID={2}";
+    private static final String NOT_TABNUM = "{0}: в старой карточке tabnum отсутствует.";
+    private static final String CARD_NOT_MOD = "{0}: Карточка не изменилась.";
+    private static final String NOT_FOUND_OLD_ID = "{0}: не содержит данных о e-mail/mobile, невозможно выявить старую карточку.";
+    private static final String COMP_PNAME = "ID старой карты {0} в базе DEPS не найден.";
+    private static final String PARENT_3LEVEL = "Parent меньше 3х уровней для ";
+
     private class PName {// отдел, идентифицируется именем отдела и полным именем parent отдела (3
                          // уровня)
         private String name;
@@ -84,55 +99,66 @@ public class DBService {
         }
     }
 
-    public List<Card> getByName(String name, Boolean noDeleted) throws DBException {
+    // получить ID отдела
+    public Long getPid(PName newParentName) {
+        Long pid = 0L;
+        try {
+            pid = ddao.getId(newParentName.getName(), newParentName.getParentName());
+            logger.log(Level.INFO, FOUND_PID,
+                    new String[] { newParentName.getName(), newParentName.getParentName(), Long.toString(pid) });
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, NOT_FAUND_PID,
+                    new String[] { newParentName.getName(), newParentName.getParentName() });
+            try {
+                pid = ddao.getId(newParentName.getName());
+                logger.log(Level.INFO, FAUND_PID_1, new String[] { newParentName.getName(), Long.toString(pid) });
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, NOT_FAUND_PID_1, newParentName.getName());
+            }
+        }
+        return pid;
+    }
+
+    public List<Card> getByName(String name, Boolean isDeleted) throws DBException {
         List<Card> cards;
         try {
-            cards = (ddao.getByField("name", name, noDeleted));
-            cards.addAll(udao.getByField("name", name, noDeleted));
+            cards = (ddao.getByField("name", name, isDeleted));
+            cards.addAll(udao.getByField("name", name, isDeleted));
         } catch (SQLException e) {
             throw new DBException(e);
         }
         return cards;
     }
 
-    public List<Card> getByPID(long pid, Boolean noDeleted) throws DBException {
+    public List<Card> getByPID(long pid, Boolean isDeleted) throws DBException {
         List<Card> cards;
         try {
-            cards = (ddao.getByField("parentid", pid, noDeleted));
-            cards.addAll(udao.getByField("parentid", pid, noDeleted));
+            cards = (ddao.getByField("parentid", pid, isDeleted));
+            cards.addAll(udao.getByField("parentid", pid, isDeleted));
         } catch (SQLException e) {
             throw new DBException(e);
         }
         return cards;
     }
 
-    public List<Card> getByMobile(String mobile, Boolean noDeleted) throws DBException {
+    public Long getIdByField(String field, String val) {
+        Long id = 0L;
         try {
-            return udao.getByField("mobile", mobile, noDeleted);
+            id = udao.getIdByField(field, val, false);
         } catch (SQLException e) {
-            throw new DBException(e);
+            logger.log(Level.SEVERE, "SQLException: Не найдено поле {0}={1}.", new String[] {field,val});
+            //logger.log(Level.SEVERE, "SQLException: ", e);
         }
+        return id;
     }
 
-    /*
-     * addUser(Map.Entry<String, Card> ecard) где ecard - элемент HashMap, в которой
-     * ключ - ID типа строка ("sotr3445"), значение - вся карточка из www-int
-     * добавляет карточку сотрудника в БД
-     *
-     */
-    public long addUser(Map.Entry<String, Card> ecard) throws DBException, SQLException {
-        Card oldcard;
-        Long oldid, newid;
-        String hist = "";
-        String tabnum = ecard.getValue().getTabnum().toString();
-        PName newParentName;
-        PName oldParentName;
+    private PName getParentName3lev(Map.Entry<String, Card> ecard) {
         String newidr = ecard.getValue().getparent(); // имя parent карточки типа 'razd1234'
+        Card parentcard = Main.cards.getcard(newidr);
 
         // генерируем 3х уровневый parentname из HashMap с катрочками для данной
         // карточки
         String parentname3lev = "";// полное имя parent (3 уровня)
-        Card parentcard = Main.cards.getcard(newidr);
         Card tmpcard = parentcard;
         int level = 0;
         try {
@@ -145,43 +171,96 @@ public class DBService {
                 }
             } while (level < 3);
         } catch (NullPointerException npe) {
-            logger.warning("Parent меньше 3х уровней для " + parentcard.toString());
+            logger.warning(PARENT_3LEVEL + parentcard.toString());
         }
         for (int i = level; i < 3; i++) {
             parentname3lev += "/";
-            logger.info(parentname3lev);
+            logger.log(Level.INFO, parentname3lev);
         }
-        newParentName = new PName(parentcard.getName(), parentname3lev);
+        return new PName(parentcard.getName(), parentname3lev);
+    }
 
-        udao.createTable();// создаем если отсутствует
-        try {
-            oldid = udao.getId(tabnum);
-        } catch (SQLException e) {
-            oldid = 0L;
+    private String compareParentName(Card oldcard, PName newParentName) throws SQLException {
+        // сравниваем parentname до 3 уровня
+        PName oldParentName;
+
+        if (oldcard.getparentid() == 0L) {
+            oldParentName = new PName("#", "//");
+        } else {
+            try {
+                oldParentName = new PName(ddao.get(oldcard.getparentid()).getName(),
+                        ddao.get(oldcard.getparentid()).getparentname());
+            } catch (JdbcSQLException e) {
+                logger.log(Level.SEVERE, COMP_PNAME, oldcard.getparentid());
+                oldParentName = new PName("None", "root");
+            }
         }
+        if (!oldParentName.equals(newParentName)) {// изменилось parent name
+            return "was change parent;";
+        } else {
+            return "";
+        }
+
+    }
+
+    private Long findOldId(Map.Entry<String, Card> ecard) {
+        // поиск в базе старой карты с тем же мобильным или email
+        Long oldidByMob = 0L;
+        if (!ecard.getValue().getMobile().equals("")) {// указан мобильный
+            oldidByMob = getIdByField("mobile", ecard.getValue().getMobile());
+        }
+        Long oldidByEmail = 0L;
+        if (!ecard.getValue().getEmail().equals("")) {// указан email
+            oldidByEmail = getIdByField("email", ecard.getValue().getEmail());
+        } 
+        if (oldidByMob.equals(0L) && oldidByEmail.equals(0L)) {
+                logger.log(Level.WARNING, NOT_FOUND_OLD_ID, ecard.getValue().getName());
+                return 0L;
+        } else if (oldidByEmail.equals(0L)){
+            return oldidByMob;
+        } else if (oldidByMob.equals(0L)){
+            return oldidByEmail;
+        } else if (!oldidByMob.equals(oldidByEmail)) {
+            logger.log(Level.WARNING,"oldidByMob = {0}; oldidByEmail = {1}. Different ID !", 
+                        new String[] {Long.toString(oldidByMob),Long.toString(oldidByEmail)});
+        } 
+        return oldidByEmail;
+    }
+
+    /*
+     * addUser(Map.Entry<String, Card> ecard) где ecard - элемент HashMap, в которой
+     * ключ - ID типа строка ("sotr3445"), значение - вся карточка из www-int
+     * добавляет карточку сотрудника в БД
+     *
+     */
+    public long addUser(Map.Entry<String, Card> ecard) throws DBException, SQLException {
+        Card oldcard;
+        Long oldid, newid;
+        String hist = ""; //результат сравнения старой и новой версии карты - история изменений
+        PName newParentName;
+
+        newParentName = getParentName3lev(ecard);//объект с именем отдела и полным именем parent отдела (3 уровня)
+        udao.createTable();// создаем если отсутствует
+        oldid = findOldId(ecard);//ищем в базе есть ли уже эта карточка
+
         if (oldid > 0) { // карточка users уже есть
             oldcard = udao.get(oldid);
-            if (oldcard.getparentid() == 0L) {
-                oldParentName = new PName("#", "//");
-            } else {
-                try {
-                    oldParentName = new PName(ddao.get(oldcard.getparentid()).getName(),
-                            ddao.get(oldcard.getparentid()).getparentname());
-                } catch (JdbcSQLException e) {
-                    logger.severe("ID старой карты " + oldcard.getparentid() + " в базе DEPS не найден.");
-                    oldParentName = new PName("None", "root");
-                }
-            }
-            if (!oldParentName.equals(newParentName)) {// изменилось parent name
-                hist = "was change parent;";
-            }
+            hist = compareParentName(oldcard, newParentName);
             hist += ecard.getValue().compareCard(oldcard);
             if (hist.equals("")) { // изменений нет
-                logger.info(tabnum + ": Карточка не изменилась.");
+                logger.log(Level.INFO, CARD_NOT_MOD, ecard.getValue().getName());
                 // обновить ldate в карточке users
                 udao.setLdate(oldid, new Date(System.currentTimeMillis()));
                 return oldid;
-            } else {
+            } else { //карточка изменилась
+                //переносим tabnum
+                if (ecard.getValue().getTabnum() == 0){
+                    if (oldcard.getTabnum() == 0) {
+                        logger.log(Level.INFO, NOT_TABNUM, ecard.getValue().getName());
+                    } else {
+                        ecard.getValue().setTabnum(oldcard.getTabnum());
+                    }
+                }
                 // переносим отчество из старой карточки, если оно есть
                 if (oldcard.getName().split(" ").length > 2) {
                     ecard.getValue().setname(ecard.getValue().getName() + " " + oldcard.getName().split(" ")[2]);
@@ -210,7 +289,7 @@ public class DBService {
                 thro.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                logger.severe("Join to ThreadGetO error: " +e );
+                logger.log(Level.SEVERE,"Join to ThreadGetO error.", e );
             }
             //скачиваем фото
             ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
@@ -221,34 +300,19 @@ public class DBService {
                 thr.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                logger.severe("Join to ThreadGetImg error: " +e );
+                logger.log(Level.SEVERE,"Join to ThreadGetImg error.", e );
             }
 
         }
-        // Card newcard = ecard.getValue();
-        Long pid = 0L;
-        Boolean nopid = false;
-        try {
-            pid = ddao.getId(newParentName.getName(), newParentName.getParentName());
-            logger.info("Найден PID для NAME: " +  newParentName.getName() +", PARENT: " + newParentName.getParentName() + ", PID=" + pid);
-        } catch (SQLException e) {
-            logger.severe("Не найден PID для NAME: " +  newParentName.getName() +", PARENT: " + newParentName.getParentName());
-            try {
-                pid = ddao.getId(newParentName.getName());
-                logger.info("Найден PID для NAME: " +  newParentName.getName() +", PARENT: null" + ", PID=" + pid);
-            } catch (SQLException ex) {
-                logger.severe("Не найден PID для NAME: " +  newParentName.getName() +", PARENT: null");
-                nopid = true;
-            }
-        }
-        // newcard.setparentid(pid);
+        Long pid = getPid(newParentName);
+        ecard.getValue().setparentid(pid);
         udao.insert(ecard.getValue(), hist);
-        logger.info("Insert user " + ecard.getValue().getName());
-        newid = udao.getId(ecard.getValue().getTabnum().toString());
-        udao.setparentId(newid, pid);
-
+        logger.log(Level.INFO, "Insert user {0}", ecard.getValue().getName());
+        
+        Card newcard = ecard.getValue();
+        newid = getIdByField("email", newcard.getEmail());
         connection.commit();
-        if (nopid) {// если карточка родителя не найдена заносим в массив для последующего поиска
+        if (pid == 0L) {// если карточка родителя не найдена заносим в массив для последующего поиска
             udepcash.put(newid, newParentName);
         }
         return newid;
@@ -269,7 +333,7 @@ public class DBService {
             ddao.deleteAll(); // пометим как удаленные все старые записи в deps, т.к. скачали из все заново в
                               // HashMap
             connection.setAutoCommit(false);
-            logger.info("Заполняем DEP...........................................");
+            logger.log(Level.INFO, "Заполняем DEP.........................................."+".");
             for (Map.Entry<String, Card> entry : cards.entrySet()) {
                 try {
                     if (entry.getValue().isParent()) {// заполняем deps из HashMap
@@ -278,16 +342,15 @@ public class DBService {
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
-                    logger.severe(
-                            "Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getName());
+                    logger.log(Level.SEVERE,"Not insert in deps {0}: {1}", new String[] {entry.getValue().getidr(), entry.getValue().getName()});
                     errcount++;
                 }
             }
-            logger.info("Inserted in DEPS: " + depcount + ". Error: " + errcount);
+            logger.log(Level.INFO, "Inserted in DEPS: " + depcount + ". Error: " + errcount);
             // заполнение PID в таблице deps
             int count = 0;
             int er = 0;
-            logger.info("Заполняем PID в DEP....................................");
+            logger.log(Level.INFO, "Заполняем PID в DEP..................................."+".");
             for (Map.Entry<String, Card> entry : cards.entrySet()) {
                 long pid;
                 long id;
@@ -304,12 +367,12 @@ public class DBService {
                         count++;
                     }
                 } catch (SQLException e) {
-                    logger.severe(
-                            "Not insert in deps " + entry.getValue().getidr() + ":" + entry.getValue().getName());
+                    logger.log(Level.SEVERE,
+                            "Not insert in deps {0} :{1}", new String[]  {entry.getValue().getidr(), entry.getValue().getName()});
                     er++;
                 }
             }
-            logger.info("Fill PID for DEPS in DB: " + count + ". Error: " + er);
+            logger.log(Level.INFO, "Fill PID for DEPS in DB: " + count + ". Error: " + er);
             // удаляем из deps дубликаты (некоторые карточки deps не изменились, но были
             // повторно скачаны и внесены в deps)
             ddao.dropDoubleRow();
@@ -331,7 +394,7 @@ public class DBService {
         errcount = 0;
         try {
             connection.setAutoCommit(false);
-            logger.info("Заполняем USERS...................................");
+            logger.log(Level.INFO, "Заполняем USERS.................................."+".");
             for (Map.Entry<String, Card> entry : cards.entrySet()) {
                 try {
                     if (!entry.getValue().isParent()) {// заполняем users
@@ -341,99 +404,54 @@ public class DBService {
                 } catch (DBException e) {
                     // e.printStackTrace();
                     errcount++;
-                    logger.severe("Can not insert user (entry is parent): " + entry.getValue().getName());
-                }
-            }
-            logger.info("---# "+ThreadGetImg.threads.size() + " потоков создано в ThreadGetImg #------------------");
-            for (ThreadGetImg th : ThreadGetImg.threads) {// ждем завершения потоков ThreadGetImg созданных в addUser()
-                try {
-                    th.join();
-                    logger.info(th.getName() + ": Ждем завершения потоков ThreadGetImg созданных в addUser()");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    logger.severe("Join to ThreadGetImg error: " +e );
+                    logger.log(Level.SEVERE,"Can not insert user [addUser()]: {0}", entry.getValue().toString());
+                    logger.log(Level.SEVERE,"DBException:", e);
                 }
             }
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException ignore) {
-                logger.severe("Rollback error: " +ignore);
+                logger.log(Level.SEVERE,"Rollback error.",ignore);
             }
+            logger.log(Level.SEVERE, "OOOOOOOOOOOO usercount: {0}", usercount);
+            //logger.log(Level.SEVERE, "OOOOOOOOOOOO userEntry: {0}", );
             throw new DBException(e);
         } finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException ignore) {
-                logger.severe("Set Autocommit back error: " + ignore);
+                logger.log(Level.SEVERE,"Set Autocommit back error.", ignore);
             }
-            for (ThreadGetImg th : ThreadGetImg.threads) {
+            logger.log(Level.INFO, THREAD_I, Integer.toString(ThreadGetImg.threads.size()));
+            for (ThreadGetImg th : ThreadGetImg.threads) {// ждем завершения потоков ThreadGetImg созданных в addUser()
                 try {
                     th.join();
-                    logger.info("Finally: Ждем завершения потоков ThreadGetImg созданных в addUser()");
+                    //logger.log(Level.INFO, WAIT_END_THREAD_I, th.getName());
                 } catch (InterruptedException e) {
-                    logger.severe("Join to ThreadGetImg error: " +e );
+                    e.printStackTrace();
+                    logger.log(Level.SEVERE,"Join to ThreadGetImg error.",e );
+                }
+            }
+            logger.log(Level.INFO, THREAD_O, Integer.toString(ThreadGetO.threads.size()));
+            for (ThreadGetO tho : ThreadGetO.threads) {
+                try {
+                    tho.join();
+                    //logger.log(Level.INFO, WAIT_END_THREAD_O, tho.getName());
+                } catch (InterruptedException e) {
+                    logger.log(Level.SEVERE,"Join to ThreadGetImg error.", e );
                     e.printStackTrace();
                 }
             }
         }
-        logger.info("Обработано users: " + usercount + ". Не найдено PID: " + udepcash.size() + ". Time: "
-                + (System.nanoTime() - t) / (usercount) + " ns./user \r Не найдены:\r");
-        // logger.info("users.ID : deps.name");
+        logger.log(Level.INFO, ADDED_USERS, 
+                                new String[] {usercount.toString(), Integer.toString(udepcash.size()), Float.toString((System.nanoTime()-t)/(1000*usercount))});
         for (Map.Entry<Long, PName> e : udepcash.entrySet()) {
-            logger.info(e.getKey() + ": " + e.getValue().getName() + "; " + e.getValue().getParentName());
+            logger.log(Level.INFO,  "{0}: {1}; {2}", new String[] {Long.toString(e.getKey()), e.getValue().getName(), e.getValue().getParentName()});
         }
+        logger.log(Level.INFO, "-----END-----");
         return (depcount + usercount);
     }
-
-    // private int findUserParent(String typemap, Map<Long, PName> mapcash){
-    // int count = 0;
-    // int err =0;
-    // Map<Long, PName> tmpcash = new HashMap<>();
-    // try {
-    // connection.setAutoCommit(false);
-    // while (mapcash.size()>0) {
-    // for (Map.Entry<Long, PName> entry : mapcash.entrySet()) {
-    //
-    // try {
-    // if (typemap.equals("users")) {
-    // udao.setparentId(entry.getKey(),
-    // ddao.getId(entry.getValue().getName(),entry.getValue().getParentName()));
-    // } else {
-    // if (entry.getValue().equals("root")) {
-    // ddao.setparentId(entry.getKey(), 0L);
-    // }else{
-    // ddao.setparentId(entry.getKey(),
-    // ddao.getId(entry.getValue().getName(),entry.getValue().getParentName()));
-    // }
-    // }
-    // count++;
-    // } catch (SQLException e) {
-    // tmpcash.put(entry.getKey(),entry.getValue());
-    // e.printStackTrace();
-    // }
-    // }
-    // err++;
-    // mapcash.clear();
-    // mapcash.putAll(tmpcash);
-    // if (err>5){
-    // System.out.println("Поиск родителей более " + err + " раз.");
-    // System.out.println(mapcash.toString());
-    // throw new SQLException();
-    // }
-    // }
-    // connection.commit();
-    //
-    // } catch (SQLException e) {
-    // e.printStackTrace();
-    // } finally {
-    // try {
-    // connection.setAutoCommit(true);
-    // } catch (SQLException ignore) {
-    // }
-    // }
-    // return count;
-    // }
 
     public void cleanUp() throws DBException {
         try {

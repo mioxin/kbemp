@@ -7,9 +7,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.WinHttpClients;
 
 import java.io.IOException;
-import java.net.ProxySelector;
+//import java.net.ProxySelector;
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;

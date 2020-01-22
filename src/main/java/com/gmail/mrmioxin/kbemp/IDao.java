@@ -23,6 +23,9 @@ public interface IDao {
     default List<Card> getByField(String name, Long value, Boolean noDeleted) throws  SQLException{
         return null;
     };
+    default long getIdByField(String name, String value, Boolean noDeleted) throws  SQLException{
+        return 0L;
+    };
 
     long CountNoPid() throws SQLException;
 

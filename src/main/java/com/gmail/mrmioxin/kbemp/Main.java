@@ -13,8 +13,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
+//import java.util.logging.ConsoleHandler;
+//import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -22,6 +22,10 @@ import java.util.logging.Logger;
  */
 
 public class Main {
+    /**
+     *
+     */
+    private static final String LOAD_TO_DB = "Загрузка данных в локальную базу...";
     public static Cards cards;
     private static Logger logger= BaseConst.logg;;
 
@@ -69,7 +73,7 @@ public class Main {
                 e.printStackTrace();
             }
         } else {
-            logger.info("Загрузка данных в локальную базу...");
+            logger.info(LOAD_TO_DB);
             cards = new Cards(dbService);
             // cards.load(Paths.get("data.txt"));//первоначальная загрузка из файла
             cards.load("razd");

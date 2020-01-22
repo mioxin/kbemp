@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 /**
@@ -50,7 +51,7 @@ public class ThreadGetO extends ThreadGet {
                 .compile("(<span( \\S+){1,}>){0,1}" + card.getName().split(" ")[0] + "( \\S+){0,1}( \\S+){0,1}</td>");// (
                                                                                                                       // \S+){0,1}(
                                                                                                                       // \S+){0,1}</td>
-        Pattern p_wordsonly = Pattern.compile("([А-Яа-я]+)',");
+        //Pattern p_wordsonly = Pattern.compile("([А-Яа-я]+)',");
         // System.out.println("START ["+name+ "] thread");
         String newname = null;
         // long t = System.nanoTime();
@@ -80,11 +81,18 @@ public class ThreadGetO extends ThreadGet {
                         if (aResponse.size() > 1) {
                             for (String s : aResponse) {
                                 if (findPattern(p_vn, s, 1).equals(card.getPhone().toString())) {
-                                    fio = card.getName() + findPattern(p_sn, s, 4);
+                                    fio = findPattern(p_sn, s, 4).trim();
                                 }
                             }
                         } else {
-                            fio = card.getName() + findPattern(p_sn, aResponse.get(0), 4);
+                            fio = findPattern(p_sn, aResponse.get(0), 4).trim();
+                        }
+                        if (fio.equals("")) {//если отчество н енайдено
+                            fio = card.getName();
+                                logger.log(Level.WARNING,"fio={0}: отчество не найдено. \r\n>>>>>>>>>>>>>>>\r\n{1}\r\n>>>>>>>>>>>>>>>>\r\n", 
+                                    new String[] {fio, aResponse.toString()});
+                        } else {
+                            fio = card.getName() + fio;
                         }
                     }
                 } else {

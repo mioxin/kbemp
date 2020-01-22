@@ -14,32 +14,33 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class UsersDataSet extends Card {
-    private Date date;
+    private Long id;
     private Date ldate;
     private Boolean deleted;
     private String history;
 
     public UsersDataSet() {
-        this.date = new Date(System.currentTimeMillis());
         this.ldate = this.date;
         this.deleted = false;
     }
 
-    public UsersDataSet(Long id, Date date, String name, String parent, Long pid, String phone, String mobile,
-            Integer tabnum, String grade, String avatar, Boolean deleted, String history) {
+    public UsersDataSet(Long id, Date date, String name, String parent, String phone, String mobile, String email,
+            Integer tabnum, String grade, String avatar, Boolean deleted, String history, Long pid) {
+        this.id = id;
         this.date = date;
         this.ldate = date;
         this.name = name;
         this.parent = parent;
-        this.parentid = pid;
         this.phone = phone;
         this.mobile = mobile;
+        this.email = email;
         this.tabnum = tabnum;
         this.grade = grade;
         this.avatar = avatar;
         this.deleted = false;
         this.history = history;
-    }
+        this.parentid = pid;
+}
 
     public void addHistory(String hist) {
         this.history += hist;
@@ -56,5 +57,13 @@ public class UsersDataSet extends Card {
         }
         map.put("history",history);
         return map;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
