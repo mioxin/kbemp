@@ -40,6 +40,7 @@ public class DBService {
     private static final String NOT_FOUND_OLD_ID = "{0}: не содержит данных о e-mail/mobile, невозможно выявить старую карточку.";
     private static final String COMP_PNAME = "ID старой карты {0} в базе DEPS не найден.";
     private static final String PARENT_3LEVEL = "Parent меньше 3х уровней для ";
+    private static final String CARD_IS_MOD = "{0}: Карточка изменилась! (hist: {1}).\r\noldcard:{2}\r\nnewcard:{3}";
 
     private class PName {// отдел, идентифицируется именем отдела и полным именем parent отдела (3
                          // уровня)
@@ -204,7 +205,14 @@ public class DBService {
     }
 
     private Long findOldId(Map.Entry<String, Card> ecard) {
-        // поиск в базе старой карты с тем же мобильным или email
+        // поиск в базе старой карты с тем же табельным номером или мобильным или email
+        Long oldidByTab = 0L;
+        if (ecard.getValue().getTabnum() != 0) {// указан таб номер
+            oldidByTab = getIdByField("tabnum", ecard.getValue().getTabnum().toString());
+        }
+        if (oldidByTab != 0L) {
+            return oldidByTab;
+        }
         Long oldidByMob = 0L;
         if (!ecard.getValue().getMobile().equals("")) {// указан мобильный
             oldidByMob = getIdByField("mobile", ecard.getValue().getMobile());
@@ -253,7 +261,8 @@ public class DBService {
                 udao.setLdate(oldid, new Date(System.currentTimeMillis()));
                 return oldid;
             } else { //карточка изменилась
-                //переносим tabnum
+                logger.log(Level.INFO, CARD_IS_MOD, new String[] {ecard.getValue().getName(), hist,oldcard.toString(), ecard.getValue().toString()});
+                //переносим tabnum если в новой карте его нет
                 if (ecard.getValue().getTabnum() == 0){
                     if (oldcard.getTabnum() == 0) {
                         logger.log(Level.INFO, NOT_TABNUM, ecard.getValue().getName());
@@ -398,6 +407,7 @@ public class DBService {
             for (Map.Entry<String, Card> entry : cards.entrySet()) {
                 try {
                     if (!entry.getValue().isParent()) {// заполняем users
+                        logger.log(Level.INFO, "------------------< {0} >------------------", usercount);
                         addUser(entry);
                         usercount++;
                     }

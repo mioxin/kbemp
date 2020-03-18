@@ -160,7 +160,7 @@ public  class Card {
         //if (this.mobile != null && !this.mobile.equals(c.mobile)) { ret += "was change mobile phone;";}
         //if (this.tabnum != c.tabnum) { ret += "was change tabnum;";}
         if (this.avatar != null && !this.avatar.equals(c.avatar)) { ret += "was change avatar image;";}
-        if (this.grade != null && !this.grade.equals(c.grade)) { ret += "was change grade;";}
+        if (this.grade != null && !this.grade.toUpperCase().equals(c.grade.toUpperCase())) { ret += "was change grade;";}
         if (!this.name.split(" ")[0].equals(c.name.split(" ")[0])) { ret += "was change name;";}
         return ret;
     }
