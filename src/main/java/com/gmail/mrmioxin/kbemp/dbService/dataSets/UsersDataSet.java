@@ -46,6 +46,10 @@ public class UsersDataSet extends Card {
         this.history += hist;
     }
 
+    public String getHistory() {
+        return this.history;
+    }
+
     @Override
     public Map<String,String> toMap(){
         HashMap<String,String> map = (HashMap) super.toMap();

@@ -210,6 +210,34 @@ public class UsersDAO  implements IDao {
                 append(")").toString());
     }
 
+    public void insert(UsersDataSet card, String hist) throws SQLException {
+        Map<String,String> mapcard = card.toMap();
+        String date = new Date(System.currentTimeMillis()).toString();
+
+        executor.execUpdate(new StringBuilder("insert into ").append(TABLE).append(" (date,ldate,name,parent,phone,mobile,email,tabnum,grade,avatar,deleted,history,parentid) ").
+                append("values ('"). 
+                append(mapcard.get("date")).append("','").
+                append(date).append("','").
+                append(mapcard.get("name")).append("','").
+                append(mapcard.get("parent")).append("','").
+                append(mapcard.get("phone")).append("','").
+                append(mapcard.get("mobile")).append("','").
+                append(mapcard.get("email")).append("',").
+                append(mapcard.get("tabnum")).append(",'").
+                append(mapcard.get("grade")).append("','").
+                append(mapcard.get("avatar")).append("',").
+                append("FALSE,'").
+                append(hist).append("',").
+                append(mapcard.get("parentid")).
+                append(")").toString());
+    }
+
+    public void update(long id, String field, String val) throws SQLException {
+        executor.execUpdate(new StringBuilder("UPDATE ").append(TABLE).
+                                                        append(" SET ").
+                                                        append(field).append("='").append(val).
+                                                        append("' WHERE ID=").append(id).toString());
+    }
 
     public void createTable() throws SQLException {
         executor.execUpdate(new StringBuilder("create table if not exists ").append(TABLE).

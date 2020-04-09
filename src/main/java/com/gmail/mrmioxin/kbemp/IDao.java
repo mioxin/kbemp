@@ -4,6 +4,8 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.gmail.mrmioxin.kbemp.dbService.dataSets.UsersDataSet;
+
 /**
  * Created by palchuk on 12.04.2018.
  */
@@ -34,6 +36,10 @@ public interface IDao {
     default void deleteAll() throws SQLException{};
 
     void insert(Card card, String hist) throws SQLException;
+
+    void insert(UsersDataSet card, String hist) throws SQLException;
+
+    void update(long id, String field, String val) throws SQLException;
 
     void  setparentId(long id, long pid) throws  SQLException;
 

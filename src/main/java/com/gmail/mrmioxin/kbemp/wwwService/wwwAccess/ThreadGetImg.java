@@ -27,6 +27,7 @@ public class ThreadGetImg extends  ThreadGet {
     private static final String FILE_EXIST = "Файл {0} уже существует.";
     private static final String CREATE_THR = "Создали поток {0} для скачивания imgFile: {1}";
     public static List<ThreadGetImg> threads = new ArrayList<>();
+    protected static Integer count = 0;
     private Path imgFile;
 
     public ThreadGetImg(CloseableHttpClient site, Card c, String nameThread){

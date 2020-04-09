@@ -23,7 +23,6 @@ public class ThreadGet extends  Thread {
     protected final HttpGet httpget;
     protected final Card card;
     protected final String thrName;
-    protected static Integer count = 0;
     protected Logger logger = BaseConst.logg;
 
 

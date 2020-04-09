@@ -6,6 +6,7 @@ import com.gmail.mrmioxin.kbemp.IDao;
 import com.gmail.mrmioxin.kbemp.Main;
 import com.gmail.mrmioxin.kbemp.dbService.dao.DepDAO;
 import com.gmail.mrmioxin.kbemp.dbService.dao.UsersDAO;
+import com.gmail.mrmioxin.kbemp.dbService.dataSets.UsersDataSet;
 import com.gmail.mrmioxin.kbemp.wwwService.wwwAccess.ThreadGetImg;
 import com.gmail.mrmioxin.kbemp.wwwService.wwwAccess.ThreadGetO;
 import org.h2.jdbc.JdbcSQLException;
@@ -41,6 +42,8 @@ public class DBService {
     private static final String COMP_PNAME = "ID старой карты {0} в базе DEPS не найден.";
     private static final String PARENT_3LEVEL = "Parent меньше 3х уровней для ";
     private static final String CARD_IS_MOD = "{0}: Карточка изменилась! (hist: {1}).\r\noldcard:{2}\r\nnewcard:{3}";
+    private static final String NOT_THIRD_NAME = "{0}: в имени старой карточки отсутствует отчество.";
+    private static final String RECREATE_OLD_CARD = "{0}: Изменили старую карточку, добавлено отчество. История: {1}";
 
     private class PName {// отдел, идентифицируется именем отдела и полным именем parent отдела (3
                          // уровня)
@@ -246,6 +249,7 @@ public class DBService {
         Long oldid, newid;
         String hist = ""; //результат сравнения старой и новой версии карты - история изменений
         PName newParentName;
+        ThreadGetO thro = null;
 
         newParentName = getParentName3lev(ecard);//объект с именем отдела и полным именем parent отдела (3 уровня)
         udao.createTable();// создаем если отсутствует
@@ -253,12 +257,34 @@ public class DBService {
 
         if (oldid > 0) { // карточка users уже есть
             oldcard = udao.get(oldid);
+            //если в старой карточке нет отчества то пробуем его обновить с сайта
+            if (oldcard.getName().split(" ").length < 3) {
+                thro = new ThreadGetO(Main.cards.site.getHttpclient(), oldcard,
+                        "threadWWWO-" + oldcard.getName());
+                ThreadGetO.threads.add(thro);
+                thro.start();
+            }
+            
             hist = compareParentName(oldcard, newParentName);
             hist += ecard.getValue().compareCard(oldcard);
             if (hist.equals("")) { // изменений нет
                 logger.log(Level.INFO, CARD_NOT_MOD, ecard.getValue().getName());
                 // обновить ldate в карточке users
                 udao.setLdate(oldid, new Date(System.currentTimeMillis()));
+                // ожидаем завершения потока запроса отчества если он создан
+                if (thro != null) {
+                    try {
+                        thro.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        logger.log(Level.SEVERE,"Join to ThreadGetO error.", e );
+                    }
+                    if (oldcard.getName().split(" ").length > 2) { //если отчество добавилось update карточку
+                        udao.update(oldid, "name", oldcard.getName());
+                        logger.log(Level.INFO, RECREATE_OLD_CARD,
+                                new String[] { oldcard.getName(), ((UsersDataSet) oldcard).getHistory() });
+                    }
+                }
                 return oldid;
             } else { //карточка изменилась
                 logger.log(Level.INFO, CARD_IS_MOD, new String[] {ecard.getValue().getName(), hist,oldcard.toString(), ecard.getValue().toString()});
@@ -273,11 +299,8 @@ public class DBService {
                 // переносим отчество из старой карточки, если оно есть
                 if (oldcard.getName().split(" ").length > 2) {
                     ecard.getValue().setname(ecard.getValue().getName() + " " + oldcard.getName().split(" ")[2]);
-                } else {// если отчества в старой карточке нет проверяем на сайте
-                    ThreadGetO thro = new ThreadGetO(Main.cards.site.getHttpclient(), ecard.getValue(),
-                            "threadWWWO-" + ecard.getValue().getName());
-                    ThreadGetO.threads.add(thro);
-                    thro.start();
+                } else {
+                    logger.log(Level.INFO, NOT_THIRD_NAME, ecard.getValue().getName());
                 }
                 if (hist.contains("avatar")) {// если изменилось фото - скачать
                     ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
@@ -290,7 +313,7 @@ public class DBService {
             }
         } else {// при загрузке из www-int, если карточка новая - добавляем отчество из www-int
             // при загрузке из файла это не требуется - отчество добавдяется ранее
-            ThreadGetO thro = new ThreadGetO(Main.cards.site.getHttpclient(), ecard.getValue(),
+            thro = new ThreadGetO(Main.cards.site.getHttpclient(), ecard.getValue(),
                     "threadWWWO-" + ecard.getValue().getName());
             ThreadGetO.threads.add(thro);
             thro.start();

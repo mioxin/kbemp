@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
  */
 public class ThreadGetO extends ThreadGet {
     public static List<ThreadGetO> threads = new ArrayList<>();
+    protected static Integer count = 0;
 
     public ThreadGetO(CloseableHttpClient site, Card c, String nameThread) {
         super(site, c, nameThread);
@@ -87,12 +88,12 @@ public class ThreadGetO extends ThreadGet {
                         } else {
                             fio = findPattern(p_sn, aResponse.get(0), 4).trim();
                         }
-                        if (fio.equals("")) {//если отчество н енайдено
+                        if (fio.equals("")) {//если отчество не найдено
                             fio = card.getName();
                                 logger.log(Level.WARNING,"fio={0}: отчество не найдено. \r\n>>>>>>>>>>>>>>>\r\n{1}\r\n>>>>>>>>>>>>>>>>\r\n", 
                                     new String[] {fio, aResponse.toString()});
                         } else {
-                            fio = card.getName() + fio;
+                            fio = card.getName().trim() + " " + fio;
                         }
                     }
                 } else {
