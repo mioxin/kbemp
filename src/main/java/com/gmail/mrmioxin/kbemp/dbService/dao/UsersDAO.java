@@ -53,7 +53,7 @@ public class UsersDAO  implements IDao {
     @Override
     public long getId(String tabnum) throws SQLException {
         String q = new StringBuilder().append("select * from ").append(TABLE).
-                                        append(" where id=").append(tabnum).append(" and deleted=FALSE").toString();
+                                        append(" where tabnum=").append(tabnum).append(" and deleted=FALSE").toString();
         //"select * from " + TABLE + " where tabnum=" + tabnum + " and deleted=FALSE";
         return executor.execQuery(q, result -> {
             if (result.isLast()) {

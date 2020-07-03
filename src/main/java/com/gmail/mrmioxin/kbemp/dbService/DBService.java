@@ -38,7 +38,7 @@ public class DBService {
     private static final String FOUND_PID = "Найден PID для NAME: {0}, PARENT: {1}, PID={2}";
     private static final String NOT_TABNUM = "{0}: в старой карточке tabnum отсутствует.";
     private static final String CARD_NOT_MOD = "{0}: Карточка не изменилась.";
-    private static final String NOT_FOUND_OLD_ID = "{0}: не содержит данных о e-mail/mobile, невозможно выявить старую карточку.";
+    private static final String NOT_FOUND_OLD_ID = "{0}: не содержит данных о e-mail, невозможно выявить старую карточку.";
     private static final String COMP_PNAME = "ID старой карты {0} в базе DEPS не найден.";
     private static final String PARENT_3LEVEL = "Parent меньше 3х уровней для ";
     private static final String CARD_IS_MOD = "{0}: Карточка изменилась! (hist: {1}).\r\noldcard:{2}\r\nnewcard:{3}";
@@ -208,7 +208,7 @@ public class DBService {
     }
 
     private Long findOldId(Map.Entry<String, Card> ecard) {
-        // поиск в базе старой карты с тем же табельным номером или мобильным или email
+        // поиск в базе старой карты с тем же табельным номером или email
         Long oldidByTab = 0L;
         if (ecard.getValue().getTabnum() != 0) {// указан таб номер
             oldidByTab = getIdByField("tabnum", ecard.getValue().getTabnum().toString());
@@ -216,25 +216,26 @@ public class DBService {
         if (oldidByTab != 0L) {
             return oldidByTab;
         }
-        Long oldidByMob = 0L;
-        if (!ecard.getValue().getMobile().equals("")) {// указан мобильный
-            oldidByMob = getIdByField("mobile", ecard.getValue().getMobile());
-        }
+        // Long oldidByMob = 0L;
+        // if (!ecard.getValue().getMobile().equals("")) {// указан мобильный
+        //     oldidByMob = getIdByField("mobile", ecard.getValue().getMobile());
+        // }
         Long oldidByEmail = 0L;
         if (!ecard.getValue().getEmail().equals("")) {// указан email
             oldidByEmail = getIdByField("email", ecard.getValue().getEmail());
         } 
-        if (oldidByMob.equals(0L) && oldidByEmail.equals(0L)) {
+        if (oldidByEmail.equals(0L)) {
                 logger.log(Level.WARNING, NOT_FOUND_OLD_ID, ecard.getValue().getName());
                 return 0L;
-        } else if (oldidByEmail.equals(0L)){
-            return oldidByMob;
-        } else if (oldidByMob.equals(0L)){
-            return oldidByEmail;
-        } else if (!oldidByMob.equals(oldidByEmail)) {
-            logger.log(Level.WARNING,"oldidByMob = {0}; oldidByEmail = {1}. Different ID !", 
-                        new String[] {Long.toString(oldidByMob),Long.toString(oldidByEmail)});
         } 
+        // else if (oldidByEmail.equals(0L)){
+        //     return oldidByMob;
+        // } else if (oldidByMob.equals(0L)){
+        //     return oldidByEmail;
+        // } else if (!oldidByMob.equals(oldidByEmail)) {
+        //     logger.log(Level.WARNING,"oldidByMob = {0}; oldidByEmail = {1}. Different ID !", 
+        //                 new String[] {Long.toString(oldidByMob),Long.toString(oldidByEmail)});
+        // } 
         return oldidByEmail;
     }
 
@@ -263,10 +264,22 @@ public class DBService {
                         "threadWWWO-" + oldcard.getName());
                 ThreadGetO.threads.add(thro);
                 thro.start();
+            } else {
+                logger.log(Level.INFO, "Есть отчество: {0}", ecard.getValue().getName());
             }
             
             hist = compareParentName(oldcard, newParentName);
             hist += ecard.getValue().compareCard(oldcard);
+            if (hist.equals("reload foto;")) {//в старой карте был сбой загрузки фото, попытка снова скачать фото
+                //убрать error из ссылки в БД, если снова будет сбой error будет добавлен
+                udao.update(oldid, "avatar", ecard.getValue().getAvatar());
+                //загрузка фото
+                ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
+                    "threadImg-" + ecard.getValue().getTabnum().toString());
+                ThreadGetImg.threads.add(thr);
+                thr.start();
+                hist="";
+            }
             if (hist.equals("")) { // изменений нет
                 logger.log(Level.INFO, CARD_NOT_MOD, ecard.getValue().getName());
                 // обновить ldate в карточке users
@@ -317,23 +330,11 @@ public class DBService {
                     "threadWWWO-" + ecard.getValue().getName());
             ThreadGetO.threads.add(thro);
             thro.start();
-            try {
-                thro.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                logger.log(Level.SEVERE,"Join to ThreadGetO error.", e );
-            }
             //скачиваем фото
             ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
                     "threadImg-" + ecard.getValue().getTabnum().toString());
             ThreadGetImg.threads.add(thr);
             thr.start();
-            try {
-                thr.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                logger.log(Level.SEVERE,"Join to ThreadGetImg error.", e );
-            }
 
         }
         Long pid = getPid(newParentName);
@@ -437,7 +438,7 @@ public class DBService {
                 } catch (DBException e) {
                     // e.printStackTrace();
                     errcount++;
-                    logger.log(Level.SEVERE,"Can not insert user [addUser()]: {0}", entry.getValue().toString());
+                    logger.log(Level.SEVERE,"Can not insert user [addUser()]: ", entry.getValue().toString());
                     logger.log(Level.SEVERE,"DBException:", e);
                 }
             }
@@ -447,7 +448,7 @@ public class DBService {
             } catch (SQLException ignore) {
                 logger.log(Level.SEVERE,"Rollback error.",ignore);
             }
-            logger.log(Level.SEVERE, "OOOOOOOOOOOO usercount: {0}", usercount);
+            logger.log(Level.SEVERE, "OOOOOOOOOOOO usercount: ", usercount);
             //logger.log(Level.SEVERE, "OOOOOOOOOOOO userEntry: {0}", );
             throw new DBException(e);
         } finally {
@@ -476,6 +477,17 @@ public class DBService {
                     e.printStackTrace();
                 }
             }
+            for (Card c : ThreadGetImg.notDownloadImg) {//исправляем в БД карточки со сбойными загрузками фото
+                try {
+                    logger.log(Level.INFO, "Update DB error download foto {0}", c.toString());
+                    long id = udao.getId(String.valueOf(c.getTabnum()));
+                    udao.update(id, "avatar", "error: " + c.getAvatar() );
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    logger.log(Level.SEVERE,"Update field \"avatar\" failure.",e );
+                } 
+            }
+            
         }
         logger.log(Level.INFO, ADDED_USERS, 
                                 new String[] {usercount.toString(), Integer.toString(udepcash.size()), Float.toString((System.nanoTime()-t)/(1000*usercount))});

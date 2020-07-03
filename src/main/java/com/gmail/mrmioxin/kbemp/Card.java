@@ -157,9 +157,15 @@ public  class Card {
     public String compareCard(Card c){
         String ret = "";
         if (this.phone != null && !this.phone.equals(c.phone)) { ret += "was change internal phone;";}
-        //if (this.mobile != null && !this.mobile.equals(c.mobile)) { ret += "was change mobile phone;";}
+        if (this.mobile != null && !this.mobile.equals(c.mobile)) { ret += "was change mobile phone;";}
         //if (this.tabnum != c.tabnum) { ret += "was change tabnum;";}
-        if (this.avatar != null && !this.avatar.equals(c.avatar)) { ret += "was change avatar image;";}
+        if (this.avatar != null) {
+            if (("error: " + this.avatar).equals(c.avatar)) { //фото не изменилось, но не было загружено
+                ret += "reload foto;";
+            } else if (!this.avatar.equals(c.avatar)) { //фото изменилось
+                ret += "was change avatar image;";
+            } 
+        }
         if (this.grade != null && !this.grade.toUpperCase().equals(c.grade.toUpperCase())) { ret += "was change grade;";}
         if (!this.name.split(" ")[0].equals(c.name.split(" ")[0])) { ret += "was change name;";}
         return ret;

@@ -49,7 +49,7 @@ public class ThreadGetO extends ThreadGet {
         // Pattern p_sn = Pattern.compile("<span.+</span>.* -?(\\S+)</td>");//отчество
         // //
         Pattern p_sn = Pattern
-                .compile("(<span( \\S+){1,}>){0,1}" + card.getName().split(" ")[0] + "( \\S+){0,1}( \\S+){0,1}</td>");// (
+                .compile("(<span( \\S+){1,}>){0,1}" + card.getName().split(" ")[0] + "( \\S+){0,1}( \\S+){0,1}<\\/td>");// (
                                                                                                                       // \S+){0,1}(
                                                                                                                       // \S+){0,1}</td>
         //Pattern p_wordsonly = Pattern.compile("([А-Яа-я]+)',");
@@ -81,16 +81,17 @@ public class ThreadGetO extends ThreadGet {
                         }
                         if (aResponse.size() > 1) {
                             for (String s : aResponse) {
-                                if (findPattern(p_vn, s, 1).equals(card.getPhone().toString())) {
-                                    fio = findPattern(p_sn, s, 4).trim();
+                                //if (findPattern(p_vn, s, 1).equals(card.getPhone().toString())) {
+                                if (findPattern(p_tab, s, 1).equals(card.getTabnum().toString())) {
+                                    fio = findPattern(p_sn, s, 4).trim();//отчество
                                 }
                             }
                         } else {
-                            fio = findPattern(p_sn, aResponse.get(0), 4).trim();
+                            fio = findPattern(p_sn, aResponse.get(0), 4).trim();//отчество
                         }
                         if (fio.equals("")) {//если отчество не найдено
-                            fio = card.getName();
-                                logger.log(Level.WARNING,"fio={0}: отчество не найдено. \r\n>>>>>>>>>>>>>>>\r\n{1}\r\n>>>>>>>>>>>>>>>>\r\n", 
+                            fio = card.getName().trim();
+                            logger.log(Level.WARNING,"fio={0}: отчество не найдено. \r\n>>>>>>>>>>>>>>>\r\n{1}\r\n>>>>>>>>>>>>>>>>\r\n", 
                                     new String[] {fio, aResponse.toString()});
                         } else {
                             fio = card.getName().trim() + " " + fio;
