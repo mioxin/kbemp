@@ -40,7 +40,7 @@ public class ThreadGetImg extends  ThreadGet {
         if (findPattern(p_host,url,1) == "") {
             base = BaseConst.WWWINT;
         }else {
-            base = "https://";
+            base = "http://";
         }
         URI uri = null;
         try {

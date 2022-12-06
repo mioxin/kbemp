@@ -49,7 +49,7 @@ public class ThreadGetO extends ThreadGet {
         // Pattern p_sn = Pattern.compile("<span.+</span>.* -?(\\S+)</td>");//отчество
         // //
         Pattern p_sn = Pattern
-                .compile("(<span( \\S+){1,}>){0,1}" + card.getName().split(" ")[0] + "( \\S+){0,1}( \\S+){0,1}<\\/td>");// (
+                .compile("(<span( \\S+){1,}>){0,1}" + card.getName().split(" ")[0] + "( \\S+){0,1}( \\S+){0,2}<\\/td>");// (
                                                                                                                       // \S+){0,1}(
                                                                                                                       // \S+){0,1}</td>
         //Pattern p_wordsonly = Pattern.compile("([А-Яа-я]+)',");

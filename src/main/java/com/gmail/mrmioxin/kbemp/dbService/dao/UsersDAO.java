@@ -255,10 +255,11 @@ public class UsersDAO  implements IDao {
                 append("deleted boolean, ").
                 append("history varchar(1024), ").
                 append("parentid bigint, ").
-                append("primary key (id))").toString());
-        executor.execUpdate("create index if not exists name on users(name)");
-        executor.execUpdate("create index if not exists tabnum on users(email)");
-        executor.execUpdate("create index if not exists mobile on users(mobile)");
+                append("primary key (id), ").
+                append("index (name,email,mobile, tabnum))").toString());
+        //executor.execUpdate("create index if not exists name on users(name)");
+        //executor.execUpdate("create index if not exists tabnum on users(email)");
+        //executor.execUpdate("create index if not exists mobile on users(mobile)");
         //("create table if not exists users (id bigint auto_increment, user_name varchar(256), primary key (id))");
     }
 

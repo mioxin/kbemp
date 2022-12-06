@@ -1,5 +1,6 @@
 package com.gmail.mrmioxin.kbemp.dbService.dao;
 
+import com.gmail.mrmioxin.kbemp.BaseConst;
 import com.gmail.mrmioxin.kbemp.Card;
 import com.gmail.mrmioxin.kbemp.IDao;
 import com.gmail.mrmioxin.kbemp.dbService.dataSets.DepDataSet;
@@ -10,8 +11,12 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 public class DepDAO implements IDao {
+    private Logger logger = BaseConst.logg;
     private static final String TABLE = "deps";
 
     private Executor executor;
@@ -73,10 +78,22 @@ public class DepDAO implements IDao {
     @Override
     public void insert(Card card, String hist) throws SQLException {
         Map<String, String> cmap = card.toMap();
-        // System.out.println("Insert " +cmap.get("name"));
-        executor.execUpdate("insert into " + TABLE + " (insdate,idr,name,parent,deleted,history) " + "values ('"
-                + new Date(System.currentTimeMillis()).toString() + "','" + cmap.get("idr") + "','" + cmap.get("name")
-                + "','" + cmap.get("parent") + "',FALSE,'" + hist + "')");
+        String tdate = new Date(System.currentTimeMillis()).toString();
+        //logger.log(Level.INFO, "Insert {0}, {1}", new String[] { tdate, card.toString()});
+        executor.execUpdate(new StringBuilder("insert into ").append(TABLE).
+                            append(" (insdate,idr,name,parent,deleted,history) values ('").
+                            append(tdate).append("','").
+                            append(cmap.get("idr")).append("','").
+                            append(cmap.get("name")).append("','").
+                            append(cmap.get("parent")).append("',FALSE,'").
+                            append(hist).append("')").toString());
+            // "insert into " + TABLE + " (insdate,idr,name,parent,deleted,history) values ('"
+            //     + tdate + "','" 
+            //     + cmap.get("idr") + "','" 
+            //     + cmap.get("name") + "','" 
+            //     + cmap.get("parent") 
+            //     + "',FALSE,'" 
+            //     + hist + "')");
     }
 
     @Override
@@ -87,12 +104,13 @@ public class DepDAO implements IDao {
 
     @Override
     public void createTable() throws SQLException {
-        executor.execUpdate("create table if not exists " + TABLE + " (id bigint auto_increment, " + "insdate DATE, "
-                + "idr varchar(256), " + "name varchar(256), " + "parent varchar(256), " + "parentid bigint, "
-                + "deleted boolean, " + "history varchar(1024), " + "parentname varchar(255), " + "primary key (id));");
-        executor.execUpdate("create index if not exists name on deps(idr)");
-        executor.execUpdate("create index if not exists name on deps(name)");
-        executor.execUpdate("create index if not exists parent on deps(parentid)");
+        executor.execUpdate("create table if not exists " + TABLE + " (id bigint auto_increment, insdate DATE, "
+                + "idr varchar(256), name varchar(256), parent varchar(256), parentid bigint, "
+                + "deleted boolean, history varchar(1024), parentname varchar(255), " 
+                + "primary key (id), index(idr,name,parentid));");
+        // executor.execUpdate("create index if not exists name on deps(idr)");
+        // executor.execUpdate("create index if not exists name on deps(name)");
+        // executor.execUpdate("create index if not exists parent on deps(parentid)");
     }
 
     @Override
