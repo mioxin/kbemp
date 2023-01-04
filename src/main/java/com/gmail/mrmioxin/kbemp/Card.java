@@ -89,7 +89,8 @@ public  class Card {
             this.name = cleanw(text);
         } else {
             stabnum = findPattern(p_tabn,text);
-            this.tabnum = new Integer((stabnum.equals(""))? "0" :stabnum);
+//            this.tabnum = new Integer((stabnum.equals(""))? "0" :stabnum);
+            this.tabnum = Integer.valueOf((stabnum.equals(""))? "0" :stabnum);
             this.name = findPattern(p_fio, text);
             this.phone = findPattern(p_vn, text);
             this.email = findPattern(p_email, text);
@@ -121,16 +122,13 @@ public  class Card {
             this.phone = ac[4];
             namephone.add(ac[3]);
             namephone.add(ac[4]);
-//            try {
-                this.tabnum = new Integer(ac[0]);
-                this.name = cleanw(ac[3]);//((new wwwService()).getApidata().getO(namephone));
-//            } catch (UnsupportedEncodingException e) {
-//                e.printStackTrace();
-////            } catch (NumberFormatException e) {
-////                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            try{
+                this.tabnum = Integer.parseInt(ac[0]);
+            } catch(NumberFormatException e) {
+                System.err.println(ac[0] + ". Failed get tabnum from string. " + e.getLocalizedMessage());
+                logger.severe(ac[0] + ". Failed get tabnum from string.");
+            }
+            this.name = cleanw(ac[3]);//((new wwwService()).getApidata().getO(namephone));
             this.mobile = ac[5];
             this.avatar = "www-int"+ac[6];
             this.grade = ac[2];
@@ -150,6 +148,27 @@ public  class Card {
         this.parent = parent;
         this.hasChild = hasChild;
         this.parentname = parentname;
+    }
+    
+    public Card(Map<String, String> cardMap ) {
+        this.date = new Date(System.currentTimeMillis());
+        this.idr = cardMap.get("idr");
+        this.name = cardMap.get("name");
+        this.parent = cardMap.get("parent");
+        this.hasChild = cardMap.get("hasChild").equals("'true'") || cardMap.get("hasChild").equals("true");
+        if (this.idr.substring(0, 4).equalsIgnoreCase("sotr")) {
+            try{
+                this.tabnum = Integer.parseInt(cardMap.get("tabnum"));
+            } catch(NumberFormatException e) {
+                System.err.println(cardMap.get("tabnum") + ". Failed get tabnum from string. " + e.getLocalizedMessage());
+                logger.severe(cardMap.get("tabnum") + ". Failed get tabnum from string.");
+            }
+            this.phone = cardMap.get("phone");
+            this.email = cardMap.get("email");
+            this.mobile = cardMap.get("mobile");
+            this.avatar = cardMap.get("avatar");
+            this.grade = cardMap.get("grade");
+        }
     }
 
     public Card(){}

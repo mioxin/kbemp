@@ -4,7 +4,10 @@ import com.gmail.mrmioxin.kbemp.BaseConst;
 import com.gmail.mrmioxin.kbemp.Card;
 import com.gmail.mrmioxin.kbemp.wwwService.wwwAccess.wwwData;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.WinHttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import java.io.IOException;
 //import java.net.ProxySelector;
@@ -18,6 +21,7 @@ import java.util.logging.Logger;
  */
 public class wwwService {
     private final CloseableHttpClient httpclient;
+    //private final CloseableHttpClient httpclient_t;
     private final wwwData apidata;
     private Logger logger = BaseConst.logg;
 
@@ -32,14 +36,22 @@ public class wwwService {
         //         .register("http", PlainConnectionSocketFactory.INSTANCE)
         //         .register("https", new SSLConnectionSocketFactory(sslcontext)).build();
 
-        // PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry, new SystemDefaultDnsResolver());
-        // // Increase max total connection to 200
-        // cm.setMaxTotal(40);
-        // // Increase default max connection per route to 20
-        // cm.setDefaultMaxPerRoute(20);
-        // // Increase max connections for localhost:80 to 50
-        // HttpHost localhost = new HttpHost("locahost", 80);
-        // cm.setMaxPerRoute(new HttpRoute(localhost), 50);
+        // try (PoolingHttpClientConnectionManager conMng = new PoolingHttpClientConnectionManager()) {
+        //     // Increase max total connection to 200
+        //     conMng.setMaxTotal(100);
+        //     // // Increase default max connection per route to 20
+        //     // cm.setDefaultMaxPerRoute(20);
+        //     // // Increase max connections for localhost:80 to 50
+        //     // HttpHost localhost = new HttpHost("locahost", 80);
+        //     // cm.setMaxPerRoute(new HttpRoute(localhost), 50);
+        //     //Create a ClientBuilder Object by setting the connection manager
+        //     HttpClientBuilder clientbuilder = HttpClients.custom().setConnectionManager(conMng);
+ 
+        //     //Build the CloseableHttpClient object using the build() method.
+        //     this.httpclient_t = clientbuilder.build();
+
+        // }
+        
 
         // SystemDefaultRoutePlanner routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault());
 
@@ -56,7 +68,6 @@ public class wwwService {
         //     .build();
 
         // Create an HttpClient with the given custom dependencies and configuration.
-        this.httpclient = WinHttpClients.createDefault();
         // this.httpclient = WinHttpClients.custom()
         //     .setConnectionManager(cm)
         //     .setDefaultCookieStore(cookieStore)
@@ -66,6 +77,8 @@ public class wwwService {
         //     .setDefaultRequestConfig(defaultRequestConfig)
         //     .build();
 
+        this.httpclient = WinHttpClients.createDefault();
+        
         this.apidata = new wwwData(httpclient);
     }
 

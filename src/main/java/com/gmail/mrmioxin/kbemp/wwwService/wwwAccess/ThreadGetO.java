@@ -15,7 +15,9 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -24,6 +26,7 @@ import java.util.regex.Pattern;
  */
 public class ThreadGetO extends ThreadGet {
     public static List<ThreadGetO> threads = new ArrayList<>();
+    public static Map<String, String> idFio = new HashMap<>();
     protected static Integer count = 0;
 
     public ThreadGetO(CloseableHttpClient site, Card c, String nameThread) {
@@ -111,6 +114,7 @@ public class ThreadGetO extends ThreadGet {
         // assert newname != null;
         if (!newname.isEmpty() && (newname != null)) {
             card.setname(newname);
+            idFio.put(card.getName(), newname);
         } 
         logger.info("END [" + thrName + "] thread. Count: " + count++);
     }

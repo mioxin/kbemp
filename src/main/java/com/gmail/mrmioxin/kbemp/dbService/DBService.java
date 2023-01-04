@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -195,7 +196,7 @@ public class DBService {
             try {
                 oldParentName = new PName(ddao.get(oldcard.getparentid()).getName(),
                         ddao.get(oldcard.getparentid()).getparentname());
-            } catch (JdbcSQLException e) {
+            } catch (SQLException e) {
                 logger.log(Level.SEVERE, COMP_PNAME, oldcard.getparentid());
                 oldParentName = new PName("None", "root");
             }
@@ -228,15 +229,15 @@ public class DBService {
         if (oldidByEmail.equals(0L)) {
                 logger.log(Level.WARNING, NOT_FOUND_OLD_ID, ecard.getValue().getName());
                 return 0L;
-        } 
-        // else if (oldidByEmail.equals(0L)){
-        //     return oldidByMob;
-        // } else if (oldidByMob.equals(0L)){
-        //     return oldidByEmail;
-        // } else if (!oldidByMob.equals(oldidByEmail)) {
-        //     logger.log(Level.WARNING,"oldidByMob = {0}; oldidByEmail = {1}. Different ID !", 
-        //                 new String[] {Long.toString(oldidByMob),Long.toString(oldidByEmail)});
-        // } 
+        } else if (ecard.getValue().getTabnum() != 0) {
+        // нашли старую карточку по e-mail, исправляем tabnum на новый
+            try {
+                udao.update(oldidByEmail, "tabnum", Integer.toString(ecard.getValue().getTabnum()));
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
         return oldidByEmail;
     }
 
@@ -366,7 +367,7 @@ public class DBService {
             ddao.createTable();
             ddao.deleteAll(); // пометим как удаленные все старые записи в deps, т.к. скачали из все заново в
                               // HashMap
-            connection.setAutoCommit(false);
+            //connection.setAutoCommit(false);
             logger.log(Level.INFO, "Заполняем DEP.........................................."+".");
             for (Map.Entry<String, Card> entry : cards.entrySet()) {
                 try {
@@ -420,6 +421,7 @@ public class DBService {
 
         } finally {
             try {
+                //connection.commit();
                 connection.setAutoCommit(true);
             } catch (SQLException ignore) {
             }
@@ -478,6 +480,22 @@ public class DBService {
                 } catch (InterruptedException e) {
                     logger.log(Level.SEVERE,"Join to ThreadGetImg error.", e );
                     e.printStackTrace();
+                }
+            }
+
+            for (Entry<String,String> fio : ThreadGetO.idFio.entrySet()) {
+                long id = 0L;
+                try {
+                    id = udao.getIdByField("name", fio.getKey(), null);
+                    udao.update(id, "name", fio.getValue());
+                } catch (SQLException e1) {
+                    if (id != 0L) {
+                        logger.log(Level.INFO, "Cant get name {0} from DB.", fio.getKey());
+                    } else {
+                        logger.log(Level.INFO, "Cant Update DB for FIO {0}.", fio.getValue());
+                    }
+                    logger.log(Level.INFO, e1.toString());
+                    System.out.println("Cant Update DB for FIO. Name: " + fio.getKey() +"; full name: "+fio.getValue());
                 }
             }
             for (Card c : ThreadGetImg.notDownloadImg) {//исправляем в БД карточки со сбойными загрузками фото
@@ -541,7 +559,7 @@ public class DBService {
     }
     public static Connection getMysqlConnection() {
         try {
-            DriverManager.registerDriver((Driver) Class.forName("com.mysql.jdbc.Driver").newInstance());
+            DriverManager.registerDriver((Driver) Class.forName("com.mysql.cj.jdbc.Driver").newInstance());
 
             StringBuilder url = new StringBuilder();
 

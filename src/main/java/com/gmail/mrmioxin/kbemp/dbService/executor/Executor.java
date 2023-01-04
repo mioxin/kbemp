@@ -22,11 +22,12 @@ public class Executor {
     public void execUpdate(String update) throws SQLException {
         Statement stmt = connection.createStatement();
         stmt.execute(update);
+        //System.out.println(">>"+update + ": "+stmt.getUpdateCount());
         stmt.close();
     }
 
     public <T> T execQuery(String query, ResultHandler<T> handler) throws SQLException {
-        Statement stmt = connection.createStatement();
+        Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         stmt.execute(query);
         ResultSet result = stmt.getResultSet();
         T value = handler.handle(result);

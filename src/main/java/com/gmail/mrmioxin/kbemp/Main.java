@@ -13,6 +13,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Paths;
 //import java.util.logging.ConsoleHandler;
 //import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,6 +77,7 @@ public class Main {
             logger.info(LOAD_TO_DB);
             cards = new Cards(dbService);
             // cards.load(Paths.get("data.txt"));//первоначальная загрузка из файла
+            //cards.loadSerialCards(Paths.get("data.txt"));//первоначальная загрузка из файла
             cards.load("razd");
             logger.info("END load to DB.");
         }

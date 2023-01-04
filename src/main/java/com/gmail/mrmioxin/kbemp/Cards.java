@@ -42,6 +42,11 @@ public class Cards {
         logger.info("END of site.get.");
         dbService.updateDB(this.mCards);
     }
+    public void loadSerialCards(Path file) throws DBException {
+        this.mCards.putAll((new fileService()).getSerialCards(file));
+        logger.info("END of cards.txt.");
+        dbService.updateDB(this.mCards);
+    }
 
     public void load(Path file) throws DBException, InterruptedException {
 //        DBService dbService = new DBService();

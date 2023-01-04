@@ -160,6 +160,7 @@ public class UsersDAO  implements IDao {
             if (result.isLast()) {
                 return null;
             }
+            //result.next();
             result.last();
             return result.getLong(1);
         });

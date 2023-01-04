@@ -6,6 +6,9 @@ import com.gmail.mrmioxin.kbemp.Card;
 // import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 // import org.apache.http.util.EntityUtils;
@@ -27,7 +30,21 @@ public class ThreadGet extends  Thread {
 
 
     public ThreadGet(CloseableHttpClient site, Card c, String nameThread){
-        this.httpClient = site;
+        PoolingHttpClientConnectionManager conMng = new PoolingHttpClientConnectionManager();
+        // Increase max total connection to 200
+        conMng.setMaxTotal(100);
+        // // Increase default max connection per route to 20
+        // cm.setDefaultMaxPerRoute(20);
+        // // Increase max connections for localhost:80 to 50
+        // HttpHost localhost = new HttpHost("locahost", 80);
+        // cm.setMaxPerRoute(new HttpRoute(localhost), 50);
+        //Create a ClientBuilder Object by setting the connection manager
+        HttpClientBuilder clientbuilder = HttpClients.custom().setConnectionManager(conMng);
+
+        //Build the CloseableHttpClient object using the build() method.
+        this.httpClient = clientbuilder.build();
+
+        //this.httpClient = site;
         this.card = c;
         this.thrName = nameThread;
         this.context = new BasicHttpContext();
