@@ -29,16 +29,11 @@ public class ThreadGet extends  Thread {
     protected Logger logger = BaseConst.logg;
 
 
-    public ThreadGet(CloseableHttpClient site, Card c, String nameThread){
+    public ThreadGet(Card c, String nameThread){
+        super(nameThread);
         PoolingHttpClientConnectionManager conMng = new PoolingHttpClientConnectionManager();
         // Increase max total connection to 200
         conMng.setMaxTotal(100);
-        // // Increase default max connection per route to 20
-        // cm.setDefaultMaxPerRoute(20);
-        // // Increase max connections for localhost:80 to 50
-        // HttpHost localhost = new HttpHost("locahost", 80);
-        // cm.setMaxPerRoute(new HttpRoute(localhost), 50);
-        //Create a ClientBuilder Object by setting the connection manager
         HttpClientBuilder clientbuilder = HttpClients.custom().setConnectionManager(conMng);
 
         //Build the CloseableHttpClient object using the build() method.

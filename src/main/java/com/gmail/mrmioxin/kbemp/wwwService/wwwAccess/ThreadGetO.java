@@ -29,8 +29,8 @@ public class ThreadGetO extends ThreadGet {
     public static Map<String, String> idFio = new HashMap<>();
     protected static Integer count = 0;
 
-    public ThreadGetO(CloseableHttpClient site, Card c, String nameThread) {
-        super(site, c, nameThread);
+    public ThreadGetO(Card c, String nameThread) {
+        super(c, nameThread);
         URI uri = null;
         try {
             uri = new URI(BaseConst.FIOADDR + URLEncoder.encode(c.getName(), "UTF-8") + "&type=1");
@@ -59,7 +59,8 @@ public class ThreadGetO extends ThreadGet {
         // System.out.println("START ["+name+ "] thread");
         String newname = null;
         // long t = System.nanoTime();
-
+        String key ="";
+        
         try {
             newname = httpClient.execute(httpget, response -> {
                 String fio = "";
@@ -79,7 +80,7 @@ public class ThreadGetO extends ThreadGet {
                         // удаляем пустые строки
                         aResponse.removeAll(Arrays.asList("", " "));
                         if (aResponse.size() == 0) {
-                            logger.warning(card.getName() + ". Response: " + aResponse);
+                            logger.warning(card.getName() + ". Response = 0: " + aResponse);
                             return null;
                         }
                         if (aResponse.size() > 1) {
@@ -93,9 +94,10 @@ public class ThreadGetO extends ThreadGet {
                             fio = findPattern(p_sn, aResponse.get(0), 4).trim();//отчество
                         }
                         if (fio.equals("")) {//если отчество не найдено
-                            fio = card.getName().trim();
+                            //fio = card.getName().trim();
                             logger.log(Level.WARNING,"fio={0}: отчество не найдено. \r\n>>>>>>>>>>>>>>>\r\n{1}\r\n>>>>>>>>>>>>>>>>\r\n", 
-                                    new String[] {fio, aResponse.toString()});
+                                    new String[] {card.getName().trim(), aResponse.toString()});
+                            return null;
                         } else {
                             fio = card.getName().trim() + " " + fio;
                         }
@@ -112,11 +114,12 @@ public class ThreadGetO extends ThreadGet {
         }
         logger.info(card.getName() + ". Middle name: " + newname);
         // assert newname != null;
-        if (!newname.isEmpty() && (newname != null)) {
+        if ((newname != null) && !newname.isEmpty()) {
+            key = card.getName();
+            idFio.put(key, newname);
             card.setname(newname);
-            idFio.put(card.getName(), newname);
         } 
-        logger.info("END [" + thrName + "] thread. Count: " + count++);
+        logger.info("END [" + thrName + "] thread. Count: " + count++ + ". Add to List FIO :" + key +"//" + newname);
     }
 
 }

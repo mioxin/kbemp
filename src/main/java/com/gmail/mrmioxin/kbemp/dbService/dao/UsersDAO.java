@@ -81,7 +81,7 @@ public class UsersDAO  implements IDao {
     @Override
     public List<Card> getByField(String field, String val, Boolean isDel) throws SQLException {
         String q = new StringBuilder().append("select * from ").append(TABLE).
-                                    append(" where ").append(field).append("='").append(val).append("' and deleted=").append(isDel).
+                                    append(" where ").append(field).append("='").append(val).append("' and deleted=").append(isDel?"true":"false").
                                     append(" order by ldate").toString();
         //"select * from " + TABLE + " where " + field + "='" + val + "' and deleted=" + isDel;
         List<Card> lCards = new ArrayList<>();
@@ -118,7 +118,7 @@ public class UsersDAO  implements IDao {
     public List<Card> getByField(String field, Long val, Boolean isDel) throws SQLException {
         //String q = "select * from " + TABLE + " where " + field + "=" + Long.toString(val) + " and deleted=" + isDel;
         String q = new StringBuilder().append("select * from ").append(TABLE).
-                                    append(" where ").append(field).append("=").append(val).append(" and deleted=").append(isDel).
+                                    append(" where ").append(field).append("=").append(val).append(" and deleted=").append(isDel?"true":"false").
                                     append(" order by ldate").toString();
 
         List<Card> lCards = new ArrayList<>();
@@ -154,7 +154,7 @@ public class UsersDAO  implements IDao {
     @Override
     public long getIdByField(String field, String val, Boolean isDel) throws SQLException,JdbcSQLException {
         String q = new StringBuilder().append("select * from ").append(TABLE).
-                                    append(" where ").append(field).append("='").append(val).append("' and deleted=").append(isDel).
+                                    append(" where ").append(field).append("='").append(val).append("' and deleted=").append(isDel?"true":"false").
                                     append(" order by ldate").toString();
         return executor.execQuery(q, result -> {
             if (result.isLast()) {
@@ -267,5 +267,11 @@ public class UsersDAO  implements IDao {
     public void dropTable() throws SQLException {
         executor.execUpdate("drop table if exists " + TABLE);
     }
+
+    public Integer delOldUsers() throws SQLException {
+        String ldate = new Date(System.currentTimeMillis()).toString();
+        return executor.execUpdate("update users set deleted = 1 where ldate < '"+ ldate +"' and deleted = 0");
+    };
+
 
 }

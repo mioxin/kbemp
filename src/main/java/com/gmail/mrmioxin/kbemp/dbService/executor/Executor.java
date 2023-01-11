@@ -19,11 +19,12 @@ public class Executor {
         this.connection = connection;
     }
 
-    public void execUpdate(String update) throws SQLException {
+    public int execUpdate(String update) throws SQLException {
         Statement stmt = connection.createStatement();
         stmt.execute(update);
-        //System.out.println(">>"+update + ": "+stmt.getUpdateCount());
+        int r = stmt.getUpdateCount();
         stmt.close();
+        return r;
     }
 
     public <T> T execQuery(String query, ResultHandler<T> handler) throws SQLException {

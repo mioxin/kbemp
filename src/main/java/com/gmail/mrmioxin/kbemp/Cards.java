@@ -38,7 +38,12 @@ public class Cards {
     }
 
     public void load(String razd) throws DBException {
-        this.mCards.putAll(site.get(razd));
+        try {
+            this.mCards.putAll(site.get(razd));
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         logger.info("END of site.get.");
         dbService.updateDB(this.mCards);
     }
@@ -63,7 +68,7 @@ public class Cards {
         for (Map.Entry<String, Card> entry : mCards.entrySet()){
             Card c = entry.getValue();
             if (!c.isParent()) {
-                ThreadGetO thr = new ThreadGetO(site.getHttpclient(),c, "threadO"+count);
+                ThreadGetO thr = new ThreadGetO(c, "threadO"+count);
                 ThreadGetO.threads.add(thr);
                 thr.start();
             }

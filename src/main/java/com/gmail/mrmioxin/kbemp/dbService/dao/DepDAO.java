@@ -166,6 +166,8 @@ public class DepDAO implements IDao {
         "where a.parent != b.idr");
     
         executor.execUpdate("update " + TABLE + " a, v_deps v set a.parent = v.b_idr where a.id = v.a_id");
+        executor.execUpdate("DROP VIEW IF EXISTS v_deps");
+
     }
 
     @Override

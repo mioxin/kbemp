@@ -31,8 +31,8 @@ public class ThreadGetImg extends  ThreadGet {
     protected static Integer count = 0;
     private Path imgFile;
 
-    public ThreadGetImg(CloseableHttpClient site, Card c, String nameThread){
-        super(site,c,nameThread);
+    public ThreadGetImg(Card c, String nameThread){
+        super(c,nameThread);
         String base="";
         String url = c.getAvatar();
 

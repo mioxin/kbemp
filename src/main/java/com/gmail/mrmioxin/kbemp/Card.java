@@ -332,4 +332,8 @@ public  class Card {
         map.put("avatar",avatar);
         return map;
     }
+
+    public void setparent(String par) {
+        this.parent = par;
+    }
 }

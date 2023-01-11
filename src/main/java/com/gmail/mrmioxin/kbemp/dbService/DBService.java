@@ -41,7 +41,7 @@ public class DBService {
     private static final String NOT_TABNUM = "{0}: в старой карточке tabnum отсутствует.";
     private static final String CARD_NOT_MOD = "{0}: Карточка не изменилась.";
     private static final String NOT_FOUND_OLD_ID = "{0}: не содержит данных о e-mail, невозможно выявить старую карточку.";
-    private static final String COMP_PNAME = "ID старой карты {0} в базе DEPS не найден.";
+    private static final String COMP_PNAME = "ID старой карты {0} ({1}) в базе DEPS не найден.";
     private static final String PARENT_3LEVEL = "Parent меньше 3х уровней для ";
     private static final String CARD_IS_MOD = "{0}: Карточка изменилась! (hist: {1}).\r\noldcard:{2}\r\nnewcard:{3}";
     private static final String NOT_THIRD_NAME = "{0}: в имени старой карточки отсутствует отчество.";
@@ -106,7 +106,7 @@ public class DBService {
     }
 
     // получить ID отдела
-    public Long getPid(PName newParentName) {
+    public Long getDepPid(PName newParentName) {
         Long pid = 0L;
         try {
             pid = ddao.getId(newParentName.getName(), newParentName.getParentName());
@@ -125,7 +125,7 @@ public class DBService {
         return pid;
     }
 
-    public List<Card> getByName(String name, Boolean isDeleted) throws DBException {
+    public List<Card> getDepsUsersByName(String name, Boolean isDeleted) throws DBException {
         List<Card> cards;
         try {
             cards = (ddao.getByField("name", name, isDeleted));
@@ -136,7 +136,7 @@ public class DBService {
         return cards;
     }
 
-    public List<Card> getByPID(long pid, Boolean isDeleted) throws DBException {
+    public List<Card> getDepsUsersByPID(long pid, Boolean isDeleted) throws DBException {
         List<Card> cards;
         try {
             cards = (ddao.getByField("parentid", pid, isDeleted));
@@ -147,7 +147,7 @@ public class DBService {
         return cards;
     }
 
-    public Long getIdByField(String field, String val) {
+    public Long getUsersIdByField(String field, String val) {
         Long id = 0L;
         try {
             id = udao.getIdByField(field, val, false);
@@ -197,7 +197,7 @@ public class DBService {
                 oldParentName = new PName(ddao.get(oldcard.getparentid()).getName(),
                         ddao.get(oldcard.getparentid()).getparentname());
             } catch (SQLException e) {
-                logger.log(Level.SEVERE, COMP_PNAME, oldcard.getparentid());
+                logger.log(Level.SEVERE, COMP_PNAME, new String[] {Long.toString(oldcard.getparentid()), oldcard.getName()});
                 oldParentName = new PName("None", "root");
             }
         }
@@ -209,11 +209,11 @@ public class DBService {
 
     }
 
-    private Long findOldId(Map.Entry<String, Card> ecard) {
+    private Long findOldUsersId(Map.Entry<String, Card> ecard) {
         // поиск в базе старой карты с тем же табельным номером или email
         Long oldidByTab = 0L;
         if (ecard.getValue().getTabnum() != 0) {// указан таб номер
-            oldidByTab = getIdByField("tabnum", ecard.getValue().getTabnum().toString());
+            oldidByTab = getUsersIdByField("tabnum", ecard.getValue().getTabnum().toString());
         }
         if (oldidByTab != 0L) {
             return oldidByTab;
@@ -224,7 +224,7 @@ public class DBService {
         // }
         Long oldidByEmail = 0L;
         if (!ecard.getValue().getEmail().equals("")) {// указан email
-            oldidByEmail = getIdByField("email", ecard.getValue().getEmail());
+            oldidByEmail = getUsersIdByField("email", ecard.getValue().getEmail());
         } 
         if (oldidByEmail.equals(0L)) {
                 logger.log(Level.WARNING, NOT_FOUND_OLD_ID, ecard.getValue().getName());
@@ -234,7 +234,6 @@ public class DBService {
             try {
                 udao.update(oldidByEmail, "tabnum", Integer.toString(ecard.getValue().getTabnum()));
             } catch (SQLException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -256,14 +255,13 @@ public class DBService {
 
         newParentName = getParentName3lev(ecard);//объект с именем отдела и полным именем parent отдела (3 уровня)
         udao.createTable();// создаем если отсутствует
-        oldid = findOldId(ecard);//ищем в базе есть ли уже эта карточка
+        oldid = findOldUsersId(ecard);//ищем в базе есть ли уже эта карточка
 
         if (oldid > 0) { // карточка users уже есть
             oldcard = udao.get(oldid);
             //если в старой карточке нет отчества то пробуем его обновить с сайта
             if (oldcard.getName().split(" ").length < 3) {
-                thro = new ThreadGetO(Main.cards.site.getHttpclient(), oldcard,
-                        "threadWWWO-" + oldcard.getName());
+                thro = new ThreadGetO(oldcard, "threadWWWO-" + oldcard.getName());
                 ThreadGetO.threads.add(thro);
                 thro.start();
             } else {
@@ -276,8 +274,7 @@ public class DBService {
                 //убрать error из ссылки в БД, если снова будет сбой error будет добавлен
                 udao.update(oldid, "avatar", ecard.getValue().getAvatar());
                 //загрузка фото
-                ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
-                    "threadImg-" + ecard.getValue().getTabnum().toString());
+                ThreadGetImg thr = new ThreadGetImg(ecard.getValue(), "threadImg-" + ecard.getValue().getTabnum().toString());
                 ThreadGetImg.threads.add(thr);
                 thr.start();
                 hist="";
@@ -286,19 +283,10 @@ public class DBService {
                 logger.log(Level.INFO, CARD_NOT_MOD, ecard.getValue().getName());
                 // обновить ldate в карточке users
                 udao.setLdate(oldid, new Date(System.currentTimeMillis()));
-                // ожидаем завершения потока запроса отчества если он создан
-                if (thro != null) {
-                    try {
-                        thro.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        logger.log(Level.SEVERE,"Join to ThreadGetO error.", e );
-                    }
-                    if (oldcard.getName().split(" ").length > 2) { //если отчество добавилось update карточку
-                        udao.update(oldid, "name", oldcard.getName());
-                        logger.log(Level.INFO, RECREATE_OLD_CARD,
-                                new String[] { oldcard.getName(), ((UsersDataSet) oldcard).getHistory() });
-                    }
+                //обновить parent, т.к. razdXXX в dep могло измениться
+                String prnt = "";
+                if ((prnt = ddao.get(getUser(oldid).getparentid()).getidr()).equals(ecard.getValue().getparent())) {//!ecard.getValue().getparent().equals(prnt)) {
+                    udao.update(oldid, "parent", prnt);
                 }
                 return oldid;
             } else { //карточка изменилась
@@ -318,8 +306,7 @@ public class DBService {
                     logger.log(Level.INFO, NOT_THIRD_NAME, ecard.getValue().getName());
                 }
                 if (hist.contains("avatar")) {// если изменилось фото - скачать
-                    ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
-                            "threadImg-" + ecard.getValue().getTabnum().toString());
+                    ThreadGetImg thr = new ThreadGetImg(ecard.getValue(), "threadImg-" + ecard.getValue().getTabnum().toString());
                     ThreadGetImg.threads.add(thr);
                     thr.start();
                 }
@@ -328,24 +315,25 @@ public class DBService {
             }
         } else {// при загрузке из www-int, если карточка новая - добавляем отчество из www-int
             // при загрузке из файла это не требуется - отчество добавдяется ранее
-            thro = new ThreadGetO(Main.cards.site.getHttpclient(), ecard.getValue(),
+            thro = new ThreadGetO(ecard.getValue(),
                     "threadWWWO-" + ecard.getValue().getName());
             ThreadGetO.threads.add(thro);
             thro.start();
             //скачиваем фото
-            ThreadGetImg thr = new ThreadGetImg(Main.cards.site.getHttpclient(), ecard.getValue(),
-                    "threadImg-" + ecard.getValue().getTabnum().toString());
+            ThreadGetImg thr = new ThreadGetImg(ecard.getValue(), "threadImg-" + ecard.getValue().getTabnum().toString());
             ThreadGetImg.threads.add(thr);
             thr.start();
 
         }
-        Long pid = getPid(newParentName);
+        Long pid = getDepPid(newParentName);
+        String parent = getDep(pid).getidr();
         ecard.getValue().setparentid(pid);
+        ecard.getValue().setparent(parent);
         udao.insert(ecard.getValue(), hist);
         logger.log(Level.INFO, "Insert user {0}", ecard.getValue().getName());
         
         Card newcard = ecard.getValue();
-        newid = getIdByField("email", newcard.getEmail());
+        newid = getUsersIdByField("email", newcard.getEmail());
         connection.commit();
         if (pid == 0L) {// если карточка родителя не найдена заносим в массив для последующего поиска
             udepcash.put(newid, newParentName);
@@ -447,7 +435,9 @@ public class DBService {
                     logger.log(Level.SEVERE,"DBException:", e);
                 }
             }
-        } catch (SQLException e) {
+            //помечаем как удаленных всех users кого не получили с сайта
+            logger.log(Level.INFO, "Deleted users (don't get from www): " + udao.delOldUsers().toString());
+       } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException ignore) {
@@ -485,17 +475,21 @@ public class DBService {
 
             for (Entry<String,String> fio : ThreadGetO.idFio.entrySet()) {
                 long id = 0L;
-                try {
-                    id = udao.getIdByField("name", fio.getKey(), null);
-                    udao.update(id, "name", fio.getValue());
-                } catch (SQLException e1) {
-                    if (id != 0L) {
-                        logger.log(Level.INFO, "Cant get name {0} from DB.", fio.getKey());
-                    } else {
-                        logger.log(Level.INFO, "Cant Update DB for FIO {0}.", fio.getValue());
+                if (fio.getKey().equals(fio.getValue())) {
+                    System.out.println("Abort trying DB update FIO "+ fio.toString());
+                } else {
+                    try {
+                        id = udao.getIdByField("name", fio.getKey(), false);
+                        udao.update(id, "name", fio.getValue());
+                    } catch (SQLException e1) {
+                        if (id != 0L) {
+                            logger.log(Level.INFO, "Cant get name {0} from DB.", fio.getKey());
+                        } else {
+                            logger.log(Level.INFO, "Cant Update DB for FIO {0}.", fio.getValue());
+                        }
+                        logger.log(Level.INFO, e1.toString());
+                        System.out.println("Cant Update DB for FIO. Name: " + fio.getKey() +"; full name: "+fio.getValue());
                     }
-                    logger.log(Level.INFO, e1.toString());
-                    System.out.println("Cant Update DB for FIO. Name: " + fio.getKey() +"; full name: "+fio.getValue());
                 }
             }
             for (Card c : ThreadGetImg.notDownloadImg) {//исправляем в БД карточки со сбойными загрузками фото
@@ -510,8 +504,10 @@ public class DBService {
             }
             
         }
+        if (usercount>0) {
         logger.log(Level.INFO, ADDED_USERS, 
                                 new String[] {usercount.toString(), Integer.toString(udepcash.size()), Float.toString((System.nanoTime()-t)/(1000*usercount))});
+                            }
         for (Map.Entry<Long, PName> e : udepcash.entrySet()) {
             logger.log(Level.INFO,  "{0}: {1}; {2}", new String[] {Long.toString(e.getKey()), e.getValue().getName(), e.getValue().getParentName()});
         }
@@ -571,7 +567,7 @@ public class DBService {
                     append("user=root&").          //login
                     append("password=mmm");       //password
 
-            System.out.println("URL: " + url + "\n");
+            System.out.println("Connecting to MySQL serv...\n");
 
             Connection connection = DriverManager.getConnection(url.toString());
             return connection;

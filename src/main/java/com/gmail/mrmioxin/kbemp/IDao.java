@@ -19,13 +19,13 @@ public interface IDao {
         return 0L;
     };
 
-    default List<Card> getByField(String name, String value, Boolean noDeleted) throws  SQLException{
+    default List<Card> getByField(String name, String value, Boolean isDeleted) throws  SQLException{
         return null;
     };
-    default List<Card> getByField(String name, Long value, Boolean noDeleted) throws  SQLException{
+    default List<Card> getByField(String name, Long value, Boolean isDeleted) throws  SQLException{
         return null;
     };
-    default long getIdByField(String name, String value, Boolean noDeleted) throws  SQLException{
+    default long getIdByField(String name, String value, Boolean isDeleted) throws  SQLException{
         return 0L;
     };
 
@@ -50,4 +50,6 @@ public interface IDao {
     void dropTable() throws SQLException;
 
     default void dropDoubleRow()  throws SQLException {};
+
+    default Integer delOldUsers() throws SQLException {return 0;};
 }
